@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var isSearching = false
     @StateObject private var searchCompleter = SearchCompleter()
     @State private var showSuggestions = false
+    @State private var showSettings = false
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
@@ -32,13 +33,18 @@ struct ContentView: View {
                 .edgesIgnoringSafeArea(.all)
             
             VStack(alignment: .leading, spacing: 0) {
-                SearchBar(text: $searchText, isSearching: $isSearching, searchAction: searchLocation)
-                    .padding(.horizontal)
-                    .padding(.top, 5)
-                    .onChange(of: searchText) { newValue in
-                        searchCompleter.searchTerm = newValue
-                        showSuggestions = !newValue.isEmpty
-                    }
+                SearchBar(
+                    text: $searchText,
+                    isSearching: $isSearching,
+                    searchAction: searchLocation,
+                    showSettings: $showSettings
+                )
+                .padding(.horizontal)
+                .padding(.top, 5)
+                .onChange(of: searchText) { newValue in
+                    searchCompleter.searchTerm = newValue
+                    showSuggestions = !newValue.isEmpty
+                }
                 
                 if showSuggestions && !searchCompleter.suggestions.isEmpty {
                     List {
@@ -66,6 +72,9 @@ struct ContentView: View {
             // Dismiss suggestions when tapping outside
             showSuggestions = false
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
         }
     }
     
@@ -156,6 +165,7 @@ struct SearchBar: View {
     @Binding var text: String
     @Binding var isSearching: Bool
     var searchAction: () -> Void
+    @Binding var showSettings: Bool
     
     var body: some View {
         HStack {
@@ -174,8 +184,15 @@ struct SearchBar: View {
                     }) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.gray)
-                            .padding(.trailing, 8)
                     }
+                }
+                
+                Button(action: {
+                    self.showSettings = true
+                }) {
+                    Image(systemName: "gear")
+                        .foregroundColor(.gray)
+                        .padding(.trailing, 8)
                 }
             }
             .padding(8)
@@ -194,6 +211,146 @@ struct SearchBar: View {
             }
         }
     }
+}
+
+struct SettingsView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @State private var showInterestsView = false
+    
+    var body: some View {
+        NavigationView {
+            List {
+                Section(header: Text("Karteneinstellungen")) {
+                    Toggle("Verkehr anzeigen", isOn: .constant(false))
+                    Toggle("Points of Interest anzeigen", isOn: .constant(true))
+                }
+                
+                Section(header: Text("Erscheinungsbild")) {
+                    Picker("Kartenstil", selection: .constant(0)) {
+                        Text("Standard").tag(0)
+                        Text("Satellit").tag(1)
+                        Text("Hybrid").tag(2)
+                    }
+                    
+                    Toggle("Nachtmodus", isOn: .constant(false))
+                }
+                
+                Section(header: Text("Persönliche Einstellungen")) {
+                    Button(action: {
+                        showInterestsView = true
+                    }) {
+                        HStack {
+                            Text("Interessen")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                }
+                
+                Section(header: Text("Allgemein")) {
+                    Toggle("Standort verwenden", isOn: .constant(true))
+                    Toggle("Automatische Updates", isOn: .constant(true))
+                }
+                
+                Section {
+                    Button(action: {
+                        // Hier könnte ein Reset aller Einstellungen erfolgen
+                    }) {
+                        Text("Auf Standardwerte zurücksetzen")
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            .listStyle(InsetGroupedListStyle())
+            .navigationTitle("Einstellungen")
+            .navigationBarItems(trailing: Button("Fertig") {
+                presentationMode.wrappedValue.dismiss()
+            })
+            .sheet(isPresented: $showInterestsView) {
+                InterestsView()
+            }
+        }
+    }
+}
+
+struct InterestsView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @State private var interests: [Interest] = loadInterests()
+    
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(interests.indices, id: \.self) { index in
+                    VStack(alignment: .leading) {
+                        Text(interests[index].name)
+                            .font(.headline)
+                        
+                        HStack {
+                            Text("1")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            
+                            Slider(value: $interests[index].rating, in: 1...10, step: 1)
+                            
+                            Text("10")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        
+                        Text("Bewertung: \(Int(interests[index].rating))")
+                            .font(.subheadline)
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.vertical, 5)
+                }
+            }
+            .navigationTitle("Interessen")
+            .navigationBarItems(trailing: Button("Fertig") {
+                saveInterests()
+                presentationMode.wrappedValue.dismiss()
+            })
+        }
+    }
+    
+    func saveInterests() {
+        // Umwandeln der Interessen in ein speicherbares Format
+        let interestDicts = interests.map { ["name": $0.name, "rating": $0.rating] }
+        UserDefaults.standard.set(interestDicts, forKey: "userInterests")
+    }
+    
+    static func loadInterests() -> [Interest] {
+        // Laden der Interessen aus UserDefaults oder Verwendung von Standardwerten
+        if let savedInterests = UserDefaults.standard.array(forKey: "userInterests") as? [[String: Any]] {
+            return savedInterests.compactMap { dict in
+                guard let name = dict["name"] as? String,
+                      let rating = dict["rating"] as? Double else {
+                    return nil
+                }
+                return Interest(name: name, rating: rating)
+            }
+        } else {
+            // Standard-Interessen zurückgeben, wenn keine gespeichert wurden
+            return [
+                Interest(name: "Kunst", rating: 5),
+                Interest(name: "Architektur", rating: 5),
+                Interest(name: "Geschichte", rating: 5),
+                Interest(name: "Natur", rating: 5),
+                Interest(name: "Gastronomie", rating: 5),
+                Interest(name: "Shopping", rating: 5),
+                Interest(name: "Nachtleben", rating: 5),
+                Interest(name: "Sport", rating: 5),
+                Interest(name: "Technologie", rating: 5),
+                Interest(name: "Musik", rating: 5)
+            ]
+        }
+    }
+}
+
+struct Interest: Identifiable {
+    var id = UUID()
+    var name: String
+    var rating: Double
 }
 
 class SearchCompleter: NSObject, ObservableObject, MKLocalSearchCompleterDelegate {
