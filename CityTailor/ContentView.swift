@@ -7,9 +7,19 @@
 
 import SwiftUI
 import CoreData
+import MapKit
+import Combine
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @State private var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954), // Berlin as default
+        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+    )
+    @State private var searchText = ""
+    @State private var isSearching = false
+    @StateObject private var searchCompleter = SearchCompleter()
+    @State private var showSuggestions = false
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
@@ -17,30 +27,100 @@ struct ContentView: View {
     private var items: FetchedResults<Item>
 
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+        ZStack(alignment: .top) {
+            MapView(region: $region)
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack(alignment: .leading, spacing: 0) {
+                SearchBar(text: $searchText, isSearching: $isSearching, searchAction: searchLocation)
+                    .padding(.horizontal)
+                    .padding(.top, 5)
+                    .onChange(of: searchText) { newValue in
+                        searchCompleter.searchTerm = newValue
+                        showSuggestions = !newValue.isEmpty
                     }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                
+                if showSuggestions && !searchCompleter.suggestions.isEmpty {
+                    List {
+                        ForEach(searchCompleter.suggestions, id: \.self) { suggestion in
+                            Text(suggestion)
+                                .padding(.vertical, 8)
+                                .onTapGesture {
+                                    searchText = suggestion
+                                    showSuggestions = false
+                                    searchLocation()
+                                }
+                        }
                     }
+                    .frame(maxHeight: 200)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(10)
+                    .shadow(radius: 5)
+                    .padding(.horizontal)
+                }
+                
+                Spacer()
+            }
+        }
+        .onTapGesture {
+            // Dismiss suggestions when tapping outside
+            showSuggestions = false
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
+    }
+    
+    func searchLocation() {
+        guard !searchText.isEmpty else { return }
+        
+        let searchRequest = MKLocalSearch.Request()
+        searchRequest.naturalLanguageQuery = searchText
+        
+        let search = MKLocalSearch(request: searchRequest)
+        search.start { response, error in
+            guard let response = response, error == nil else {
+                print("Error searching for \(searchText): \(error?.localizedDescription ?? "Unknown error")")
+                return
+            }
+            
+            if let firstMapItem = response.mapItems.first {
+                withAnimation {
+                    self.region = MKCoordinateRegion(
+                        center: firstMapItem.placemark.coordinate,
+                        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+                    )
                 }
             }
-            Text("Select an item")
+        }
+    }
+
+    // MapView struct using UIViewRepresentable to show full screen MapKit view
+    struct MapView: UIViewRepresentable {
+        @Binding var region: MKCoordinateRegion
+        
+        func makeUIView(context: Context) -> MKMapView {
+            let mapView = MKMapView()
+            mapView.delegate = context.coordinator
+            return mapView
+        }
+        
+        func updateUIView(_ view: MKMapView, context: Context) {
+            view.setRegion(region, animated: true)
+        }
+        
+        func makeCoordinator() -> Coordinator {
+            Coordinator(self)
+        }
+        
+        class Coordinator: NSObject, MKMapViewDelegate {
+            var parent: MapView
+            
+            init(_ parent: MapView) {
+                self.parent = parent
+            }
+            
+            func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
+                parent.region = mapView.region
+            }
         }
     }
 
@@ -52,8 +132,6 @@ struct ContentView: View {
             do {
                 try viewContext.save()
             } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
                 let nsError = error as NSError
                 fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
@@ -67,12 +145,94 @@ struct ContentView: View {
             do {
                 try viewContext.save()
             } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
                 let nsError = error as NSError
                 fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
+    }
+}
+
+struct SearchBar: View {
+    @Binding var text: String
+    @Binding var isSearching: Bool
+    var searchAction: () -> Void
+    
+    var body: some View {
+        HStack {
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray)
+                
+                TextField("Stadt eingeben...", text: $text, onCommit: {
+                    searchAction()
+                })
+                .foregroundColor(.primary)
+                
+                if !text.isEmpty {
+                    Button(action: {
+                        self.text = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                            .padding(.trailing, 8)
+                    }
+                }
+            }
+            .padding(8)
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
+            
+            if isSearching {
+                Button("Abbrechen") {
+                    self.text = ""
+                    self.isSearching = false
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+                .foregroundColor(.blue)
+                .transition(.move(edge: .trailing))
+                .animation(.default)
+            }
+        }
+    }
+}
+
+class SearchCompleter: NSObject, ObservableObject, MKLocalSearchCompleterDelegate {
+    @Published var searchTerm = ""
+    @Published var suggestions: [String] = []
+    
+    private var completer: MKLocalSearchCompleter
+    
+    override init() {
+        completer = MKLocalSearchCompleter()
+        super.init()
+        completer.delegate = self
+        completer.resultTypes = .address
+        
+        // Start observing searchTerm changes
+        $searchTerm
+            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+            .sink { [weak self] term in
+                guard let self = self else { return }
+                
+                if term.isEmpty {
+                    self.suggestions = []
+                    return
+                }
+                
+                self.completer.queryFragment = term
+            }
+            .store(in: &cancellables)
+    }
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
+        // Get suggestions and publish them
+        suggestions = completer.results.map { $0.title }
+    }
+    
+    func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
+        print("Search completer error: \(error.localizedDescription)")
     }
 }
 
