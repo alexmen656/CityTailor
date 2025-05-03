@@ -21,6 +21,9 @@ struct ContentView: View {
     @StateObject private var searchCompleter = SearchCompleter()
     @State private var showSuggestions = false
     @State private var showSettings = false
+    
+    @State private var selectedLocation: String = ""
+    @State private var showDateSelectionView = false
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
@@ -76,6 +79,9 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
+        .sheet(isPresented: $showDateSelectionView) {
+            DateSelectionView(locationName: selectedLocation)
+        }
     }
     
     func searchLocation() {
@@ -97,12 +103,17 @@ struct ContentView: View {
                         center: firstMapItem.placemark.coordinate,
                         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
                     )
+                    
+                    self.selectedLocation = firstMapItem.name ?? searchText
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        self.showDateSelectionView = true
+                    }
                 }
             }
         }
     }
 
-    // MapView struct using UIViewRepresentable to show full screen MapKit view
     struct MapView: UIViewRepresentable {
         @Binding var region: MKCoordinateRegion
         
@@ -314,13 +325,11 @@ struct InterestsView: View {
     }
     
     func saveInterests() {
-        // Umwandeln der Interessen in ein speicherbares Format
         let interestDicts = interests.map { ["name": $0.name, "rating": $0.rating] }
         UserDefaults.standard.set(interestDicts, forKey: "userInterests")
     }
     
     static func loadInterests() -> [Interest] {
-        // Laden der Interessen aus UserDefaults oder Verwendung von Standardwerten
         if let savedInterests = UserDefaults.standard.array(forKey: "userInterests") as? [[String: Any]] {
             return savedInterests.compactMap { dict in
                 guard let name = dict["name"] as? String,
@@ -330,7 +339,6 @@ struct InterestsView: View {
                 return Interest(name: name, rating: rating)
             }
         } else {
-            // Standard-Interessen zurückgeben, wenn keine gespeichert wurden
             return [
                 Interest(name: "Kunst", rating: 5),
                 Interest(name: "Architektur", rating: 5),
@@ -341,7 +349,8 @@ struct InterestsView: View {
                 Interest(name: "Nachtleben", rating: 5),
                 Interest(name: "Sport", rating: 5),
                 Interest(name: "Technologie", rating: 5),
-                Interest(name: "Musik", rating: 5)
+                Interest(name: "Musik", rating: 5),
+                Interest(name: "Reisen", rating: 5)
             ]
         }
     }
@@ -351,6 +360,147 @@ struct Interest: Identifiable {
     var id = UUID()
     var name: String
     var rating: Double
+}
+
+struct DateSelectionView: View {
+    @Environment(\.presentationMode) var presentationMode
+    let locationName: String
+    
+    @State private var startDate = Date()
+    @State private var endDate = Date().addingTimeInterval(3 * 24 * 60 * 60)
+    @State private var isLoading = false
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    
+    var tripLengthInDays: Int {
+        Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+    }
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Reiseziel")) {
+                    HStack {
+                        Text("Ort:")
+                        Spacer()
+                        Text(locationName)
+                            .bold()
+                    }
+                }
+                
+                Section(header: Text("Reisezeitraum")) {
+                    DatePicker("Anreisedatum", selection: $startDate, displayedComponents: .date)
+                    
+                    DatePicker("Abreisedatum", selection: $endDate, in: startDate..., displayedComponents: .date)
+                    
+                    HStack {
+                        Text("Aufenthaltsdauer:")
+                        Spacer()
+                        Text("\(tripLengthInDays) \(tripLengthInDays == 1 ? "Tag" : "Tage")")
+                            .bold()
+                    }
+                }
+                
+                Section {
+                    Button(action: {
+                        sendDataToBackend()
+                    }) {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                        } else {
+                            Text("An Backend senden")
+                                .frame(maxWidth: .infinity)
+                                .bold()
+                        }
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
+                    .disabled(isLoading)
+                }
+            }
+            .navigationTitle("Reiseplanung")
+            .navigationBarItems(trailing: Button("Schließen") {
+                presentationMode.wrappedValue.dismiss()
+            })
+            .alert(isPresented: $showAlert) {
+                Alert(
+                    title: Text("Backend-Benachrichtigung"),
+                    message: Text(alertMessage),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
+        }
+    }
+    
+    func sendDataToBackend() {
+        isLoading = true
+        
+        // Formatiere die Daten als JSON
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        
+        let tripData: [String: Any] = [
+            "location": locationName,
+            "startDate": dateFormatter.string(from: startDate),
+            "endDate": dateFormatter.string(from: endDate),
+            "durationInDays": tripLengthInDays
+        ]
+        
+        // Erstelle die URL-Anfrage
+        guard let url = URL(string: "http://192.168.178.149:4040/api/trips") else {
+            self.alertMessage = "Ungültige URL"
+            self.showAlert = true
+            self.isLoading = false
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            // Konvertiere die Daten in JSON und füge sie zur Anfrage hinzu
+            let jsonData = try JSONSerialization.data(withJSONObject: tripData)
+            request.httpBody = jsonData
+            
+            // Führe die Anfrage aus
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                    
+                    if let error = error {
+                        self.alertMessage = "Fehler: \(error.localizedDescription)"
+                        self.showAlert = true
+                        return
+                    }
+                    
+                    guard let httpResponse = response as? HTTPURLResponse else {
+                        self.alertMessage = "Ungültige Serverantwort"
+                        self.showAlert = true
+                        return
+                    }
+                    
+                    if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+                        self.alertMessage = "Daten erfolgreich an Backend gesendet"
+                        self.showAlert = true
+                        // Nach erfolgreicher Übermittlung schließen wir den Dialog
+                        self.presentationMode.wrappedValue.dismiss()
+                    } else {
+                        self.alertMessage = "Server-Fehler: Status \(httpResponse.statusCode)"
+                        self.showAlert = true
+                    }
+                }
+            }.resume()
+        } catch {
+            self.isLoading = false
+            self.alertMessage = "Fehler beim Erstellen der JSON-Daten: \(error.localizedDescription)"
+            self.showAlert = true
+        }
+    }
+    
+    func saveAndDismiss() {
+        presentationMode.wrappedValue.dismiss()
+    }
 }
 
 class SearchCompleter: NSObject, ObservableObject, MKLocalSearchCompleterDelegate {
@@ -365,7 +515,6 @@ class SearchCompleter: NSObject, ObservableObject, MKLocalSearchCompleterDelegat
         completer.delegate = self
         completer.resultTypes = .address
         
-        // Start observing searchTerm changes
         $searchTerm
             .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
             .sink { [weak self] term in
@@ -384,7 +533,6 @@ class SearchCompleter: NSObject, ObservableObject, MKLocalSearchCompleterDelegat
     private var cancellables = Set<AnyCancellable>()
     
     func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
-        // Get suggestions and publish them
         suggestions = completer.results.map { $0.title }
     }
     
