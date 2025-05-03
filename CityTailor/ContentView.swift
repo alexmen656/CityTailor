@@ -255,7 +255,7 @@ struct SettingsView: View {
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .foregroundColor(.gray)
-                        }
+                      }
                     }
                 }
                 
@@ -372,6 +372,9 @@ struct DateSelectionView: View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     
+    @State private var travelPlan: TravelPlan?
+    @State private var showTravelPlan = false
+    
     var tripLengthInDays: Int {
         Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
     }
@@ -429,13 +432,17 @@ struct DateSelectionView: View {
                     dismissButton: .default(Text("OK"))
                 )
             }
+            .sheet(isPresented: $showTravelPlan) {
+                if let plan = travelPlan {
+                    TravelPlanView(travelPlan: plan)
+                }
+            }
         }
     }
     
     func sendDataToBackend() {
         isLoading = true
         
-        // Formatiere die Daten als JSON
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         
@@ -446,7 +453,6 @@ struct DateSelectionView: View {
             "durationInDays": tripLengthInDays
         ]
         
-        // Erstelle die URL-Anfrage
         guard let url = URL(string: "http://192.168.178.149:4040/api/trips") else {
             self.alertMessage = "Ungültige URL"
             self.showAlert = true
@@ -459,11 +465,9 @@ struct DateSelectionView: View {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
         do {
-            // Konvertiere die Daten in JSON und füge sie zur Anfrage hinzu
             let jsonData = try JSONSerialization.data(withJSONObject: tripData)
             request.httpBody = jsonData
             
-            // Führe die Anfrage aus
             URLSession.shared.dataTask(with: request) { data, response, error in
                 DispatchQueue.main.async {
                     self.isLoading = false
@@ -481,10 +485,18 @@ struct DateSelectionView: View {
                     }
                     
                     if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
-                        self.alertMessage = "Daten erfolgreich an Backend gesendet"
-                        self.showAlert = true
-                        // Nach erfolgreicher Übermittlung schließen wir den Dialog
-                        self.presentationMode.wrappedValue.dismiss()
+                        if let data = data {
+                            do {
+                                let decoder = JSONDecoder()
+                                let backendResponse = try decoder.decode(BackendResponse.self, from: data)
+                                self.travelPlan = backendResponse.data
+                                self.showTravelPlan = true
+                            } catch {
+                                print("Fehler beim Dekodieren: \(error)")
+                                self.alertMessage = "Fehler beim Verarbeiten der Daten: \(error.localizedDescription)"
+                                self.showAlert = true
+                            }
+                        }
                     } else {
                         self.alertMessage = "Server-Fehler: Status \(httpResponse.statusCode)"
                         self.showAlert = true
@@ -497,9 +509,250 @@ struct DateSelectionView: View {
             self.showAlert = true
         }
     }
+}
+
+struct BackendResponse: Codable {
+    let success: Bool
+    let message: String
+    let data: TravelPlan
+}
+
+struct TravelPlan: Codable, Identifiable {
+    var id: String { location }
+    let location: String
+    let period: TravelPeriod
+    let dailyPlans: [DailyPlan]?
+    let recommendations: Recommendations?
+    let info: String?
+}
+
+struct TravelPeriod: Codable {
+    let startDate: String
+    let endDate: String
+    let durationInDays: Int
+}
+
+struct DailyPlan: Codable, Identifiable {
+    var id: String { date }
+    let date: String
+    let dayNumber: Int
+    let activities: [Activity]
+}
+
+struct Activity: Codable, Identifiable {
+    var id = UUID()
+    let time: String
+    let title: String
+    let description: String
+    let location: String
+    let category: String
     
-    func saveAndDismiss() {
-        presentationMode.wrappedValue.dismiss()
+    enum CodingKeys: String, CodingKey {
+        case time, title, description, location, category
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        time = try container.decode(String.self, forKey: .time)
+        title = try container.decode(String.self, forKey: .title)
+        description = try container.decode(String.self, forKey: .description)
+        location = try container.decode(String.self, forKey: .location)
+        category = try container.decode(String.self, forKey: .category)
+    }
+    
+    init(time: String, title: String, description: String, location: String, category: String) {
+        self.time = time
+        self.title = title
+        self.description = description
+        self.location = location
+        self.category = category
+    }
+}
+
+struct Recommendations: Codable {
+    let food: [String]
+    let transport: [String]
+    let tips: [String]
+}
+
+struct TravelPlanView: View {
+    let travelPlan: TravelPlan
+    @Environment(\.presentationMode) var presentationMode
+    @State private var selectedDay: Int = 1
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                VStack {
+                    Text(travelPlan.location)
+                        .font(.largeTitle)
+                        .bold()
+                        .padding(.top)
+                    
+                    Text("\(travelPlan.period.startDate) bis \(travelPlan.period.endDate)")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+                .padding(.bottom)
+                
+                if let dailyPlans = travelPlan.dailyPlans, !dailyPlans.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 15) {
+                            ForEach(dailyPlans) { day in
+                                DayButton(
+                                    dayNumber: day.dayNumber,
+                                    date: formatDateShort(day.date),
+                                    isSelected: selectedDay == day.dayNumber
+                                ) {
+                                    selectedDay = day.dayNumber
+                                }
+                            }
+                        }
+                        .padding()
+                    }
+                    .background(Color(.systemGray6))
+                    
+                    if let dayPlan = dailyPlans.first(where: { $0.dayNumber == selectedDay }) {
+                        List {
+                            ForEach(dayPlan.activities) { activity in
+                                VStack(alignment: .leading, spacing: 5) {
+                                    HStack {
+                                        Text(activity.time)
+                                            .font(.headline)
+                                            .foregroundColor(.blue)
+                                        
+                                        Spacer()
+                                        
+                                        Text(activity.category)
+                                            .font(.caption)
+                                            .padding(5)
+                                            .background(categoryColor(for: activity.category))
+                                            .foregroundColor(.white)
+                                            .cornerRadius(5)
+                                    }
+                                    
+                                    Text(activity.title)
+                                        .font(.title3)
+                                        .bold()
+                                    
+                                    Text(activity.description)
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                    
+                                    HStack {
+                                        Image(systemName: "mappin.circle.fill")
+                                            .foregroundColor(.red)
+                                        Text(activity.location)
+                                            .font(.subheadline)
+                                    }
+                                    .padding(.top, 3)
+                                }
+                                .padding(.vertical, 8)
+                            }
+                            
+                            if let recommendations = travelPlan.recommendations {
+                                Section(header: Text("Empfehlungen für diesen Tag")) {
+                                    if !recommendations.food.isEmpty {
+                                        DisclosureGroup("Essen & Trinken") {
+                                            ForEach(recommendations.food, id: \.self) { food in
+                                                Label(food, systemImage: "fork.knife")
+                                            }
+                                        }
+                                    }
+                                    
+                                    if !recommendations.transport.isEmpty {
+                                        DisclosureGroup("Transport") {
+                                            ForEach(recommendations.transport, id: \.self) { tip in
+                                                Label(tip, systemImage: "tram.fill")
+                                            }
+                                        }
+                                    }
+                                    
+                                    if !recommendations.tips.isEmpty {
+                                        DisclosureGroup("Nützliche Tipps") {
+                                            ForEach(recommendations.tips, id: \.self) { tip in
+                                                Label(tip, systemImage: "lightbulb.fill")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        Spacer()
+                        Text("Keine Aktivitäten für diesen Tag gefunden.")
+                        Spacer()
+                    }
+                } else if let info = travelPlan.info {
+                    Spacer()
+                    Text(info)
+                        .font(.title3)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                    Spacer()
+                } else {
+                    Spacer()
+                    Text("Keine Reiseplan-Daten verfügbar.")
+                    Spacer()
+                }
+            }
+            .navigationBarItems(trailing: Button("Fertig") {
+                presentationMode.wrappedValue.dismiss()
+            })
+        }
+    }
+    
+    func formatDateShort(_ dateString: String) -> String {
+        if let date = parseDate(dateString) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd.MM."
+            return formatter.string(from: date)
+        }
+        return dateString
+    }
+    
+    func parseDate(_ dateString: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.date(from: dateString)
+    }
+    
+    func categoryColor(for category: String) -> Color {
+        switch category.lowercased() {
+        case "kunst": return Color.purple
+        case "geschichte": return Color.orange
+        case "architektur": return Color.blue
+        case "gastronomie": return Color.red
+        case "shopping": return Color.pink
+        case "nachtleben": return Color.indigo
+        case "kultur": return Color.teal
+        case "sightseeing": return Color.green
+        default: return Color.gray
+        }
+    }
+}
+
+struct DayButton: View {
+    let dayNumber: Int
+    let date: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 5) {
+                Text("Tag \(dayNumber)")
+                    .fontWeight(isSelected ? .bold : .regular)
+                
+                Text(date)
+                    .font(.caption)
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .background(isSelected ? Color.blue : Color.clear)
+            .foregroundColor(isSelected ? .white : .primary)
+            .cornerRadius(10)
+        }
     }
 }
 
