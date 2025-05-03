@@ -84,14 +84,24 @@ struct DateSelectionView: View {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         
+        // Lade die Nutzerinteressen
+        let userInterests = InterestsView.loadInterests()
+        
+        // Erstelle ein Dictionary mit den Top-Interessen und ihren Bewertungen
+        let interestsData = userInterests.map { [
+            "name": $0.name,
+            "rating": $0.rating
+        ] }
+        
         let tripData: [String: Any] = [
             "location": locationName,
             "startDate": dateFormatter.string(from: startDate),
             "endDate": dateFormatter.string(from: endDate),
-            "durationInDays": tripLengthInDays
+            "durationInDays": tripLengthInDays,
+            "interests": interestsData  // Füge Interessen zum Request hinzu
         ]
         
-        guard let url = URL(string: "http://localhost:4040/api/trips") else {
+        guard let url = URL(string: "http://192.168.178.149:4040/api/trips") else {
             self.alertMessage = "Ungültige URL"
             self.showAlert = true
             self.isLoading = false
