@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreLocation
 
 struct BackendResponse: Codable {
     let success: Bool
@@ -68,6 +69,22 @@ struct Interest: Identifiable {
     var id = UUID()
     var name: String
     var rating: Double
+}
+
+// Modell für Kartenannotationen
+struct MapAnnotation: Identifiable {
+    var id = UUID()
+    let title: String
+    let subtitle: String?
+    let coordinate: CLLocationCoordinate2D
+    let activityInfo: Activity?
+    
+    init(title: String, subtitle: String? = nil, coordinate: CLLocationCoordinate2D, activityInfo: Activity? = nil) {
+        self.title = title
+        self.subtitle = subtitle
+        self.coordinate = coordinate
+        self.activityInfo = activityInfo
+    }
 }
 
 struct DayButton: View {

@@ -24,6 +24,13 @@ struct ContentView: View {
     
     @State private var selectedLocation: String = ""
     @State private var showDateSelectionView = false
+    
+    @State private var mapAnnotations: [MapAnnotation] = []
+    @State private var selectedAnnotation: MapAnnotation? = nil
+    @State private var travelPlan: TravelPlan? = nil
+    @State private var showActivityDetails = false
+    @State private var selectedActivity: Activity? = nil
+    @State private var selectedDayNumber: Int = 1
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
@@ -32,8 +39,12 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            MapView(region: $region)
-                .edgesIgnoringSafeArea(.all)
+            MapView(
+                region: $region,
+                annotations: mapAnnotations,
+                selectedAnnotation: selectedAnnotation
+            )
+            .edgesIgnoringSafeArea(.all)
             
             VStack(alignment: .leading, spacing: 0) {
                 SearchBar(
@@ -45,7 +56,7 @@ struct ContentView: View {
                 )
                 .padding(.horizontal)
                 .padding(.top, 5)
-                .zIndex(1) // Sorgt dafür, dass die SearchBar über den Ergebnissen liegt
+                .zIndex(1) 
                 .onChange(of: searchText) { newValue in
                     searchCompleter.searchTerm = newValue
                     showSuggestions = !newValue.isEmpty
@@ -99,22 +110,114 @@ struct ContentView: View {
                     .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
                     .shadow(color: Color.black.opacity(0.15), radius: 4, x: 0, y: 2)
                     .padding(.horizontal)
-                    .padding(.top, -8) // Für einen nahtlosen Übergang
+                    .padding(.top, -8)
+                }
+                
+                if let plan = travelPlan, let dailyPlans = plan.dailyPlans, !dailyPlans.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(dailyPlans) { day in
+                                DayButton(
+                                    dayNumber: day.dayNumber, 
+                                    date: formatDateShort(day.date),
+                                    isSelected: selectedDayNumber == day.dayNumber
+                                ) {
+                                    selectedDayNumber = day.dayNumber
+                                    if let dailyPlans = plan.dailyPlans {
+                                        updateMapForSelectedDay(dailyPlans: dailyPlans, in: plan.location)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 10)
+                    }
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
                 }
                 
                 Spacer()
+                
+                if let plan = travelPlan {
+                    Button(action: {
+                        showDateSelectionView = true
+                    }) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Reiseplan für \(plan.location)")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                
+                                Text("\(plan.period.startDate) - \(plan.period.endDate)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.9))
+                            }
+                            .padding(.vertical, 8)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.blue)
+                        )
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
+                    .background(Color(.systemBackground).opacity(0.95))
+                    .cornerRadius(10, corners: [.topLeft, .topRight])
+                    .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: -3)
+                }
             }
         }
         .onTapGesture {
-            // Dismiss suggestions when tapping outside
             showSuggestions = false
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
-        .sheet(isPresented: $showDateSelectionView) {
-            DateSelectionView(locationName: selectedLocation)
+        .sheet(isPresented: $showDateSelectionView, onDismiss: {
+            if let plan = self.travelPlan, let dailyPlans = plan.dailyPlans {
+                self.selectedDayNumber = 1
+                updateMapForSelectedDay(dailyPlans: dailyPlans, in: plan.location)
+            }
+        }) {
+            if let plan = self.travelPlan {
+                TravelPlanView(
+                    travelPlan: plan,
+                    selectedDay: $selectedDayNumber,
+                    onActivitySelected: { activity in
+                        self.selectedActivity = activity
+                        self.showActivityDetails = true
+                        
+                        if let annotation = self.mapAnnotations.first(where: { $0.title == activity.title }) {
+                            self.selectedAnnotation = annotation
+                            self.region = MKCoordinateRegion(
+                                center: annotation.coordinate,
+                                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                            )
+                        }
+                    }
+                )
+            } else {
+                DateSelectionView(
+                    locationName: selectedLocation,
+                    onTravelPlanReceived: { plan in
+                        self.travelPlan = plan
+                    }
+                )
+            }
+        }
+        .sheet(isPresented: $showActivityDetails) {
+            if let activity = selectedActivity {
+                ActivityDetailView(activity: activity)
+            }
         }
     }
     
@@ -140,12 +243,44 @@ struct ContentView: View {
                     
                     self.selectedLocation = firstMapItem.name ?? searchText
                     
+                    self.travelPlan = nil
+                    self.mapAnnotations = []
+                    
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         self.showDateSelectionView = true
                     }
                 }
             }
         }
+    }
+    
+    func updateMapForSelectedDay(dailyPlans: [DailyPlan], in city: String) {
+        guard let selectedDayPlan = dailyPlans.first(where: { $0.dayNumber == selectedDayNumber }) else {
+            self.mapAnnotations = []
+            return
+        }
+        
+        GeocodingService.batchGeocode(activities: selectedDayPlan.activities, city: city) { annotations in
+            self.mapAnnotations = annotations
+            
+            if let firstAnnotation = annotations.first {
+                self.region = MKCoordinateRegion(
+                    center: firstAnnotation.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+                )
+            }
+        }
+    }
+    
+    func formatDateShort(_ dateString: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        
+        if let date = formatter.date(from: dateString) {
+            formatter.dateFormat = "dd.MM."
+            return formatter.string(from: date)
+        }
+        return dateString
     }
 
     private func addItem() {
@@ -176,12 +311,68 @@ struct ContentView: View {
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
+struct ActivityDetailView: View {
+    let activity: Activity
+    @Environment(\.presentationMode) var presentationMode
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Text(activity.time)
+                            .font(.headline)
+                            .foregroundColor(.blue)
+                        
+                        Spacer()
+                        
+                        Text(activity.category)
+                            .font(.caption)
+                            .padding(5)
+                            .background(categoryColor(for: activity.category))
+                            .foregroundColor(.white)
+                            .cornerRadius(5)
+                    }
+                    
+                    Text(activity.title)
+                        .font(.title)
+                        .bold()
+                    
+                    Text(activity.description)
+                        .padding(.top, 2)
+                    
+                    HStack {
+                        Image(systemName: "mappin.circle.fill")
+                            .foregroundColor(.red)
+                        Text(activity.location)
+                    }
+                    .padding(.top, 8)
+                    
+                    Spacer()
+                }
+                .padding()
+            }
+            .navigationTitle("Aktivität")
+            .navigationBarItems(trailing: Button("Fertig") {
+                presentationMode.wrappedValue.dismiss()
+            })
+        }
+    }
+    
+    func categoryColor(for category: String) -> Color {
+        switch category.lowercased() {
+        case "kunst": return Color.purple
+        case "geschichte": return Color.orange
+        case "architektur": return Color.blue
+        case "gastronomie": return Color.red
+        case "shopping": return Color.pink
+        case "nachtleben": return Color.indigo
+        case "kultur": return Color.teal
+        case "sightseeing": return Color.green
+        default: return Color.gray
+        }
+    }
+}
 
 #Preview {
     ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)

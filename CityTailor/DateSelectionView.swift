@@ -3,6 +3,7 @@ import SwiftUI
 struct DateSelectionView: View {
     @Environment(\.presentationMode) var presentationMode
     let locationName: String
+    var onTravelPlanReceived: ((TravelPlan) -> Void)? = nil
     
     @State private var startDate = Date()
     @State private var endDate = Date().addingTimeInterval(3 * 24 * 60 * 60)
@@ -12,6 +13,7 @@ struct DateSelectionView: View {
     
     @State private var travelPlan: TravelPlan?
     @State private var showTravelPlan = false
+    @State private var selectedDayNumber: Int = 1
     
     var tripLengthInDays: Int {
         Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
@@ -72,7 +74,7 @@ struct DateSelectionView: View {
             }
             .sheet(isPresented: $showTravelPlan) {
                 if let plan = travelPlan {
-                    TravelPlanView(travelPlan: plan)
+                    TravelPlanView(travelPlan: plan, selectedDay: $selectedDayNumber)
                 }
             }
         }
@@ -138,7 +140,13 @@ struct DateSelectionView: View {
                                 let decoder = JSONDecoder()
                                 let backendResponse = try decoder.decode(BackendResponse.self, from: data)
                                 self.travelPlan = backendResponse.data
-                                self.showTravelPlan = true
+                                
+                                // Gib den Travel Plan an die ContentView zurück
+                                if let onTravelPlanReceived = self.onTravelPlanReceived {
+                                    onTravelPlanReceived(backendResponse.data)
+                                }
+                                
+                                self.presentationMode.wrappedValue.dismiss()
                             } catch {
                                 print("Fehler beim Dekodieren: \(error)")
                                 self.alertMessage = "Fehler beim Verarbeiten der Daten: \(error.localizedDescription)"

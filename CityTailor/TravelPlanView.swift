@@ -3,7 +3,8 @@ import SwiftUI
 struct TravelPlanView: View {
     let travelPlan: TravelPlan
     @Environment(\.presentationMode) var presentationMode
-    @State private var selectedDay: Int = 1
+    @Binding var selectedDay: Int
+    var onActivitySelected: ((Activity) -> Void)? = nil
     
     var body: some View {
         NavigationView {
@@ -40,39 +41,55 @@ struct TravelPlanView: View {
                     if let dayPlan = dailyPlans.first(where: { $0.dayNumber == selectedDay }) {
                         List {
                             ForEach(dayPlan.activities) { activity in
-                                VStack(alignment: .leading, spacing: 5) {
-                                    HStack {
-                                        Text(activity.time)
-                                            .font(.headline)
-                                            .foregroundColor(.blue)
-                                        
-                                        Spacer()
-                                        
-                                        Text(activity.category)
-                                            .font(.caption)
-                                            .padding(5)
-                                            .background(categoryColor(for: activity.category))
-                                            .foregroundColor(.white)
-                                            .cornerRadius(5)
+                                Button(action: {
+                                    if let onActivitySelected = onActivitySelected {
+                                        onActivitySelected(activity)
                                     }
-                                    
-                                    Text(activity.title)
-                                        .font(.title3)
-                                        .bold()
-                                    
-                                    Text(activity.description)
-                                        .font(.body)
-                                        .foregroundColor(.secondary)
-                                    
-                                    HStack {
-                                        Image(systemName: "mappin.circle.fill")
-                                            .foregroundColor(.red)
-                                        Text(activity.location)
-                                            .font(.subheadline)
+                                }) {
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        HStack {
+                                            Text(activity.time)
+                                                .font(.headline)
+                                                .foregroundColor(.blue)
+                                            
+                                            Spacer()
+                                            
+                                            Text(activity.category)
+                                                .font(.caption)
+                                                .padding(5)
+                                                .background(categoryColor(for: activity.category))
+                                                .foregroundColor(.white)
+                                                .cornerRadius(5)
+                                        }
+                                        
+                                        Text(activity.title)
+                                            .font(.title3)
+                                            .bold()
+                                            .foregroundColor(.primary)
+                                        
+                                        Text(activity.description)
+                                            .font(.body)
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(2)
+                                        
+                                        HStack {
+                                            Image(systemName: "mappin.circle.fill")
+                                                .foregroundColor(.red)
+                                            Text(activity.location)
+                                                .font(.subheadline)
+                                                .foregroundColor(.primary)
+                                            
+                                            Spacer()
+                                            
+                                            Image(systemName: "map")
+                                                .foregroundColor(.blue)
+                                                .padding(.trailing, 4)
+                                        }
+                                        .padding(.top, 3)
                                     }
-                                    .padding(.top, 3)
                                 }
                                 .padding(.vertical, 8)
+                                .buttonStyle(PlainButtonStyle()) // Damit die Listenzeile nicht standardmäßig "blau" wird
                             }
                             
                             if let recommendations = travelPlan.recommendations {
