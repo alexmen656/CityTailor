@@ -40,32 +40,66 @@ struct ContentView: View {
                     text: $searchText,
                     isSearching: $isSearching,
                     searchAction: searchLocation,
-                    showSettings: $showSettings
+                    showSettings: $showSettings,
+                    showSuggestions: $showSuggestions
                 )
                 .padding(.horizontal)
                 .padding(.top, 5)
+                .zIndex(1) // Sorgt dafür, dass die SearchBar über den Ergebnissen liegt
                 .onChange(of: searchText) { newValue in
                     searchCompleter.searchTerm = newValue
                     showSuggestions = !newValue.isEmpty
                 }
                 
                 if showSuggestions && !searchCompleter.suggestions.isEmpty {
-                    List {
-                        ForEach(Array(zip(searchCompleter.suggestions.indices, searchCompleter.suggestions)), id: \.0) { index, suggestion in
-                            Text(suggestion)
-                                .padding(.vertical, 8)
-                                .onTapGesture {
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            ForEach(Array(zip(searchCompleter.suggestions.indices, searchCompleter.suggestions)), id: \.0) { index, suggestion in
+                                Button(action: {
                                     searchText = suggestion
                                     showSuggestions = false
                                     searchLocation()
+                                }) {
+                                    HStack(alignment: .center) {
+                                        Image(systemName: "mappin.circle.fill")
+                                            .foregroundColor(.blue)
+                                            .font(.system(size: 20))
+                                            .padding(.leading, 8)
+                                        
+                                        Text(suggestion)
+                                            .foregroundColor(.primary)
+                                            .padding(.vertical, 12)
+                                            .lineLimit(1)
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "arrow.forward.circle")
+                                            .foregroundColor(.gray)
+                                            .font(.system(size: 16))
+                                            .opacity(0.7)
+                                            .padding(.trailing, 8)
+                                    }
                                 }
+                                .background(
+                                    Rectangle()
+                                        .fill(Color(UIColor.systemBackground))
+                                        .cornerRadius(0)
+                                )
+                                
+                                if index < searchCompleter.suggestions.count - 1 {
+                                    Divider()
+                                        .padding(.leading, 40)
+                                }
+                            }
                         }
+                        .background(Color(UIColor.systemBackground))
                     }
-                    .frame(maxHeight: 200)
-                    .background(Color(.systemBackground))
-                    .cornerRadius(10)
-                    .shadow(radius: 5)
+                    .frame(maxHeight: 250)
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
+                    .shadow(color: Color.black.opacity(0.15), radius: 4, x: 0, y: 2)
                     .padding(.horizontal)
+                    .padding(.top, -8) // Für einen nahtlosen Übergang
                 }
                 
                 Spacer()
