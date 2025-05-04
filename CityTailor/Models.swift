@@ -95,18 +95,24 @@ struct DayButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 5) {
+            VStack(spacing: 2) {
                 Text("Tag \(dayNumber)")
-                    .fontWeight(isSelected ? .bold : .regular)
+                    .font(.caption)
+                    .fontWeight(isSelected ? .bold : .medium)
+                    .foregroundColor(isSelected ? .white : .primary)
                 
                 Text(date)
-                    .font(.caption)
+                    .font(.caption2)
+                    .foregroundColor(isSelected ? .white.opacity(0.9) : .secondary)
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
-            .background(isSelected ? Color.blue : Color.clear)
-            .foregroundColor(isSelected ? .white : .primary)
-            .cornerRadius(10)
+            .frame(width: 70) // Feste Breite für 4 Buttons pro Reihe
+            .padding(.vertical, 5)
+            .padding(.horizontal, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? Color.blue : Color(.systemGray5))
+            )
         }
+        .buttonStyle(PlainButtonStyle())
     }
 }

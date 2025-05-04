@@ -67,120 +67,41 @@ struct ContentView: View {
                 .zIndex(1) 
                 .onChange(of: searchText) { newValue in
                     searchCompleter.searchTerm = newValue
-                    // WICHTIG: Diese Zeile wurde entfernt, um den Fokus zu erhalten
-                    // showSuggestions = !newValue.isEmpty
                 }
                 
-                // ÄNDERUNG HIER: Wir prüfen direkt searchText, anstatt showSuggestions zu verwenden
                 if !searchText.isEmpty && !searchCompleter.suggestions.isEmpty {
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            ForEach(Array(zip(searchCompleter.suggestions.indices, searchCompleter.suggestions)), id: \.0) { index, suggestion in
-                                Button(action: {
-                                    searchText = suggestion
-                                    showSuggestions = false
-                                    searchLocation()
-                                }) {
-                                    HStack(alignment: .center) {
-                                        Image(systemName: "mappin.circle.fill")
-                                            .foregroundColor(.blue)
-                                            .font(.system(size: 20))
-                                            .padding(.leading, 8)
-                                        
-                                        Text(suggestion)
-                                            .foregroundColor(.primary)
-                                            .padding(.vertical, 12)
-                                            .lineLimit(1)
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "arrow.forward.circle")
-                                            .foregroundColor(.gray)
-                                            .font(.system(size: 16))
-                                            .opacity(0.7)
-                                            .padding(.trailing, 8)
-                                    }
-                                }
-                                .background(
-                                    Rectangle()
-                                        .fill(Color(UIColor.systemBackground))
-                                        .cornerRadius(0)
-                                )
-                                
-                                if index < searchCompleter.suggestions.count - 1 {
-                                    Divider()
-                                        .padding(.leading, 40)
-                                }
-                            }
+                    SearchSuggestionsView(
+                        suggestions: searchCompleter.suggestions,
+                        onSelect: { suggestion in
+                            searchText = suggestion
+                            showSuggestions = false
+                            searchLocation()
                         }
-                        .background(Color(UIColor.systemBackground))
-                    }
-                    .frame(maxHeight: 250)
-                    .background(Color(UIColor.systemBackground))
-                    .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
-                    .shadow(color: Color.black.opacity(0.15), radius: 4, x: 0, y: 2)
-                    .padding(.horizontal)
-                    .padding(.top, -8)
+                    )
                 }
                 
                 if let plan = travelPlan, let dailyPlans = plan.dailyPlans, !dailyPlans.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            ForEach(dailyPlans) { day in
-                                DayButton(
-                                    dayNumber: day.dayNumber, 
-                                    date: formatDateShort(day.date),
-                                    isSelected: selectedDayNumber == day.dayNumber
-                                ) {
-                                    selectedDayNumber = day.dayNumber
-                                    if let dailyPlans = plan.dailyPlans {
-                                        updateMapForSelectedDay(dailyPlans: dailyPlans, in: plan.location)
-                                    }
-                                }
+                    DayButtonsView(
+                        dailyPlans: dailyPlans,
+                        selectedDayNumber: $selectedDayNumber,
+                        onDaySelected: { dayNumber in
+                            if let dailyPlans = plan.dailyPlans {
+                                updateMapForSelectedDay(dailyPlans: dailyPlans, in: plan.location)
                             }
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 10)
-                    }
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                    .padding(.top, 8)
+                        },
+                        formatDateShort: formatDateShort
+                    )
                 }
                 
                 Spacer()
                 
                 if let plan = travelPlan {
-                    Button(action: {
-                        showDateSelectionView = true
-                    }) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Reiseplan für \(plan.location)")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                
-                                Text("\(plan.period.startDate) - \(plan.period.endDate)")
-                                    .font(.subheadline)
-                                    .foregroundColor(.white.opacity(0.9))
-                            }
-                            .padding(.vertical, 8)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.white)
+                    TravelPlanSummaryView(
+                        plan: plan,
+                        onTap: {
+                            showDateSelectionView = true
                         }
-                        .padding(.horizontal, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.blue)
-                        )
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
-                    .cornerRadius(10, corners: [.topLeft, .topRight])
-                    .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: -3)
+                    )
                 }
             }
         }
@@ -248,10 +169,10 @@ struct ContentView: View {
                     
                     self.selectedLocation = firstMapItem.name ?? searchText
                     
+
                     self.travelPlan = nil
                     self.mapAnnotations = []
                     
-                    // Suchvorschläge schließen, nachdem eine Suche durchgeführt wurde
                     self.showSuggestions = false
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -267,6 +188,9 @@ struct ContentView: View {
             self.mapAnnotations = []
             return
         }
+        
+        searchText = ""
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         
         GeocodingService.batchGeocode(activities: selectedDayPlan.activities, city: city) { annotations in
             self.mapAnnotations = annotations
@@ -316,6 +240,131 @@ struct ContentView: View {
                 fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
+    }
+}
+
+// SearchSuggestionsView als separater Komponente
+struct SearchSuggestionsView: View {
+    let suggestions: [String]
+    let onSelect: (String) -> Void
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(Array(zip(suggestions.indices, suggestions)), id: \.0) { index, suggestion in
+                    Button(action: {
+                        onSelect(suggestion)
+                    }) {
+                        HStack(alignment: .center) {
+                            Image(systemName: "mappin.circle.fill")
+                                .foregroundColor(.blue)
+                                .font(.system(size: 20))
+                                .padding(.leading, 8)
+                            
+                            Text(suggestion)
+                                .foregroundColor(.primary)
+                                .padding(.vertical, 12)
+                                .lineLimit(1)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "arrow.forward.circle")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 16))
+                                .opacity(0.7)
+                                .padding(.trailing, 8)
+                        }
+                    }
+                    .background(
+                        Rectangle()
+                            .fill(Color(UIColor.systemBackground))
+                            .cornerRadius(0)
+                    )
+                    
+                    if index < suggestions.count - 1 {
+                        Divider()
+                            .padding(.leading, 40)
+                    }
+                }
+            }
+            .background(Color(UIColor.systemBackground))
+        }
+        .frame(maxHeight: 250)
+        .background(Color(UIColor.systemBackground))
+        .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
+        .shadow(color: Color.black.opacity(0.15), radius: 4, x: 0, y: 2)
+        .padding(.horizontal)
+        .padding(.top, -8)
+    }
+}
+
+// DayButtonsView als einfache Komponente mit festen Größen
+struct DayButtonsView: View {
+    let dailyPlans: [DailyPlan]
+    @Binding var selectedDayNumber: Int
+    let onDaySelected: (Int) -> Void
+    let formatDateShort: (String) -> String
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {  // Abstand von 1 auf 4 erhöht, um Überlappungen zu vermeiden
+                ForEach(dailyPlans) { day in
+                    DayButton(
+                        dayNumber: day.dayNumber,
+                        date: formatDateShort(day.date),
+                        isSelected: selectedDayNumber == day.dayNumber
+                    ) {
+                        selectedDayNumber = day.dayNumber
+                        onDaySelected(day.dayNumber)
+                    }
+                    .frame(width: 72)  // Breitenreduzierung um Platz für den Abstand zu schaffen
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+        }
+        .frame(height: 50)
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
+        .padding(.horizontal)
+        .padding(.top, 5)
+    }
+}
+
+// TravelPlanSummaryView als separate Komponente
+struct TravelPlanSummaryView: View {
+    let plan: TravelPlan
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Reiseplan für \(plan.location)")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    Text("\(plan.period.startDate) - \(plan.period.endDate)")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.9))
+                }
+                .padding(.vertical, 8)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.blue)
+            )
+        }
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+        .cornerRadius(10, corners: [.topLeft, .topRight])
+        .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: -3)
     }
 }
 
