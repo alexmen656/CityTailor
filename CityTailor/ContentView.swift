@@ -38,6 +38,39 @@ struct ContentView: View {
     private var items: FetchedResults<Item>
 
     var body: some View {
+        TabView {
+            mainView
+                .tabItem {
+                    Image(systemName: "map")
+                    Text("Karte")
+                }
+            
+            PlansView()
+                .tabItem {
+                    Image(systemName: "map.fill")
+                    Text("Pläne")
+                }
+            
+            FavoritesView()
+                .tabItem {
+                    Image(systemName: "heart")
+                    Text("Favoriten")
+                }
+            
+            SettingsView()
+                .tabItem {
+                    Image(systemName: "gear")
+                    Text("Einstellungen")
+                }
+        }
+        .onAppear {
+            // TabBar mit weißem Hintergrund
+            UITabBar.appearance().backgroundColor = .white
+        }
+    }
+    
+    // Hauptinhalt der App in einer Variable ausgelagert für bessere Lesbarkeit
+    var mainView: some View {
         ZStack(alignment: .top) {
             MapView(
                 region: $region,
@@ -47,7 +80,6 @@ struct ContentView: View {
             .edgesIgnoringSafeArea(.all)
             .contentShape(Rectangle())
             .onTapGesture {
-                // Only dismiss keyboard if not actively searching
                 if !isSearching {
                     showSuggestions = false
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -291,7 +323,7 @@ struct SearchSuggestionsView: View {
         }
         .frame(maxHeight: 250)
         .background(Color(UIColor.systemBackground))
-        .cornerRadius(10, corners: [.bottomLeft, .bottomRight])
+        .cornerRadius(10, corners: [.bottomLeft, [.bottomRight]])
         .shadow(color: Color.black.opacity(0.15), radius: 4, x: 0, y: 2)
         .padding(.horizontal)
         .padding(.top, -8)
@@ -307,7 +339,7 @@ struct DayButtonsView: View {
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {  // Abstand von 1 auf 4 erhöht, um Überlappungen zu vermeiden
+            HStack(spacing: 10) {
                 ForEach(dailyPlans) { day in
                     DayButton(
                         dayNumber: day.dayNumber,
@@ -317,7 +349,7 @@ struct DayButtonsView: View {
                         selectedDayNumber = day.dayNumber
                         onDaySelected(day.dayNumber)
                     }
-                    .frame(width: 72)  // Breitenreduzierung um Platz für den Abstand zu schaffen
+                    .frame(width: 72)
                 }
             }
             .padding(.horizontal, 8)
