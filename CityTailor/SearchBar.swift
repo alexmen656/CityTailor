@@ -6,6 +6,7 @@ struct SearchBar: View {
     var searchAction: () -> Void
     @Binding var showSettings: Bool
     @Binding var showSuggestions: Bool
+    @FocusState private var isFocused: Bool
     
     var body: some View {
         HStack {
@@ -14,10 +15,25 @@ struct SearchBar: View {
                     .foregroundColor(.gray)
                     .padding(.leading, 4)
                 
-                TextField("Stadt eingeben...", text: $text, onCommit: {
-                    searchAction()
-                })
-                .foregroundColor(.primary)
+                ZStack(alignment: .leading) {
+                    if text.isEmpty {
+                        Text("Stadt eingeben...")
+                            .foregroundColor(.gray)
+                            .allowsHitTesting(false)
+                    }
+                    
+                    // Vereinfachtes TextField ohne zusätzliche Modifikatoren, die den Fokus stören könnten
+                    TextField("", text: $text)
+                        .foregroundColor(.primary)
+                        .focused($isFocused)
+                        .onSubmit {
+                            searchAction()
+                        }
+                }
+                .onTapGesture {
+                    isSearching = true
+                    isFocused = true
+                }
                 
                 if !text.isEmpty {
                     Button(action: {
@@ -44,18 +60,12 @@ struct SearchBar: View {
             .if(!showSuggestions || text.isEmpty) { view in
                 view.cornerRadius(10)
             }
-           // .shadow(color: Color.black.opacity(0.15), radius: 4, x: 0, y: 2)
-            
+        }
+        .onAppear {
             if isSearching {
-                Button("Abbrechen") {
-                    self.text = ""
-                    self.isSearching = false
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }
-                .foregroundColor(.blue)
-                .transition(.move(edge: .trailing))
-                .animation(.default)
+                isFocused = true
             }
         }
+        // WICHTIG: KEINE onChange-Handler für text mehr!
     }
 }

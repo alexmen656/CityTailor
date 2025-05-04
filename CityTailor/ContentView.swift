@@ -45,6 +45,14 @@ struct ContentView: View {
                 selectedAnnotation: selectedAnnotation
             )
             .edgesIgnoringSafeArea(.all)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                // Only dismiss keyboard if not actively searching
+                if !isSearching {
+                    showSuggestions = false
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+            }
             
             VStack(alignment: .leading, spacing: 0) {
                 SearchBar(
@@ -59,10 +67,12 @@ struct ContentView: View {
                 .zIndex(1) 
                 .onChange(of: searchText) { newValue in
                     searchCompleter.searchTerm = newValue
-                    showSuggestions = !newValue.isEmpty
+                    // WICHTIG: Diese Zeile wurde entfernt, um den Fokus zu erhalten
+                    // showSuggestions = !newValue.isEmpty
                 }
                 
-                if showSuggestions && !searchCompleter.suggestions.isEmpty {
+                // ÄNDERUNG HIER: Wir prüfen direkt searchText, anstatt showSuggestions zu verwenden
+                if !searchText.isEmpty && !searchCompleter.suggestions.isEmpty {
                     ScrollView {
                         VStack(spacing: 0) {
                             ForEach(Array(zip(searchCompleter.suggestions.indices, searchCompleter.suggestions)), id: \.0) { index, suggestion in
@@ -169,15 +179,10 @@ struct ContentView: View {
                     }
                     .padding(.horizontal)
                     .padding(.bottom, 8)
-                    .background(Color(.systemBackground).opacity(0.95))
                     .cornerRadius(10, corners: [.topLeft, .topRight])
                     .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: -3)
                 }
             }
-        }
-        .onTapGesture {
-            showSuggestions = false
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
@@ -245,6 +250,9 @@ struct ContentView: View {
                     
                     self.travelPlan = nil
                     self.mapAnnotations = []
+                    
+                    // Suchvorschläge schließen, nachdem eine Suche durchgeführt wurde
+                    self.showSuggestions = false
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         self.showDateSelectionView = true

@@ -103,7 +103,7 @@ struct DateSelectionView: View {
             "interests": interestsData  // Füge Interessen zum Request hinzu
         ]
         
-        guard let url = URL(string: "http://192.168.178.149:4040/api/trips") else {
+        guard let url = URL(string: "https://city-tailor-backend-l4kap9rxs-alexmen656s-projects.vercel.app/api/trips") else {
             self.alertMessage = "Ungültige URL"
             self.showAlert = true
             self.isLoading = false
