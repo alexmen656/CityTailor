@@ -31,6 +31,7 @@ struct ContentView: View {
     @State private var showActivityDetails = false
     @State private var selectedActivity: Activity? = nil
     @State private var selectedDayNumber: Int = 1
+    @State private var showSaveFeedback = false
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
@@ -51,11 +52,11 @@ struct ContentView: View {
                     Text("Pläne")
                 }
             
-            FavoritesView()
-                .tabItem {
-                    Image(systemName: "heart")
-                    Text("Favoriten")
-                }
+     ///       FavoritesView()
+        //        .tabItem {
+          //          Image(systemName: "heart")
+            //        Text("Favoriten")
+              //  }
             
             SettingsView()
                 .tabItem {
@@ -168,6 +169,8 @@ struct ContentView: View {
                     locationName: selectedLocation,
                     onTravelPlanReceived: { plan in
                         self.travelPlan = plan
+                        TravelPlanStore.shared.saveTravelPlan(plan, context: viewContext)
+                        self.showSaveFeedback = true
                     }
                 )
             }
@@ -176,6 +179,9 @@ struct ContentView: View {
             if let activity = selectedActivity {
                 ActivityDetailView(activity: activity)
             }
+        }
+        .alert(isPresented: $showSaveFeedback) {
+            Alert(title: Text("Reiseplan gespeichert"), message: Text("Ihr Reiseplan wurde erfolgreich gespeichert."), dismissButton: .default(Text("OK")))
         }
     }
     
@@ -272,6 +278,11 @@ struct ContentView: View {
                 fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
+    }
+
+    private func saveTravelPlan(_ plan: TravelPlan) {
+        TravelPlanStore.shared.saveTravelPlan(plan, context: viewContext)
+        showSaveFeedback = true
     }
 }
 

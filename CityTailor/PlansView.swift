@@ -9,8 +9,12 @@ import SwiftUI
 
 // Reisepläne Ansicht
 struct PlansView: View {
-    @State private var savedPlans: [TravelPlan] = []
-    
+    @Environment(\.managedObjectContext) private var viewContext
+    @State private var savedPlans: [SavedTravelPlanViewModel] = []
+    @State private var showTravelPlanDetail = false
+    @State private var selectedTravelPlan: TravelPlan? = nil
+    @State private var selectedDayNumber = 1
+
     var body: some View {
         NavigationView {
             List {
@@ -33,19 +37,75 @@ struct PlansView: View {
                     .listRowBackground(Color.clear)
                 } else {
                     ForEach(savedPlans) { plan in
-                        VStack(alignment: .leading) {
-                            Text(plan.location)
-                                .font(.headline)
-                            
-                            Text("\(plan.period.startDate) - \(plan.period.endDate)")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                        Button(action: {
+                            selectedTravelPlan = plan.plan
+                            showTravelPlanDetail = true
+                        }) {
+                            VStack(alignment: .leading, spacing: 5) {
+                                HStack {
+                                    Text(plan.location)
+                                        .font(.headline)
+                                    
+                                    Spacer()
+                                    
+                                    Text(formatDate(plan.creationDate))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                HStack {
+                                    Text("\(plan.startDate) - \(plan.endDate)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            .padding(.vertical, 8)
                         }
-                        .padding(.vertical, 8)
                     }
+                    .onDelete(perform: deletePlans)
                 }
             }
             .navigationTitle("Meine Reisepläne")
+            .onAppear {
+                loadSavedPlans()
+            }
+        }
+        .sheet(isPresented: $showTravelPlanDetail) {
+            if let plan = selectedTravelPlan {
+                TravelPlanView(
+                    travelPlan: plan,
+                    selectedDay: $selectedDayNumber
+                )
+            }
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+    
+    private func loadSavedPlans() {
+        self.savedPlans = TravelPlanStore.shared.getTravelPlans(context: viewContext)
+    }
+    
+    private func deletePlans(at offsets: IndexSet) {
+        withAnimation {
+            offsets.forEach { index in
+                let plan = savedPlans[index]
+                TravelPlanStore.shared.deleteTravelPlan(withId: plan.id, context: viewContext)
+            }
+            
+            // Reload saved plans after deletion
+            loadSavedPlans()
         }
     }
 }
