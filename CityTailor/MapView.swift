@@ -5,6 +5,7 @@ struct MapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
     var annotations: [MapAnnotation] = []
     var selectedAnnotation: MapAnnotation? = nil
+    @EnvironmentObject private var settings: AppSettings
     
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -15,21 +16,62 @@ struct MapView: UIViewRepresentable {
     func updateUIView(_ view: MKMapView, context: Context) {
         view.setRegion(region, animated: true)
         
-        // Aktualisiere Annotationen
+        applyMapSettings(to: view)
+        
         updateAnnotations(view: view, annotations: annotations)
         
-        // Zeige Callout für ausgewählte Annotation
         if let selectedAnnotation = selectedAnnotation, 
            let annotation = view.annotations.first(where: { $0.title == selectedAnnotation.title }) {
             view.selectAnnotation(annotation, animated: true)
         }
     }
     
+    private func applyMapSettings(to view: MKMapView) {
+        if #available(iOS 16.0, *) {
+            var mapConfiguration: MKMapConfiguration
+            
+            switch AppSettings.MapStyle(rawValue: settings.mapStyle) {
+            case .standard:
+                mapConfiguration = MKStandardMapConfiguration()
+            case .satellite:
+                mapConfiguration = MKHybridMapConfiguration()  // Hybrid wird jetzt für Satellite verwendet
+            default:
+                mapConfiguration = MKStandardMapConfiguration()
+            }
+            
+            if let standardConfig = mapConfiguration as? MKStandardMapConfiguration {
+                standardConfig.pointOfInterestFilter = settings.showPOIs ? .includingAll : .excludingAll
+                standardConfig.showsTraffic = settings.showTraffic
+            }
+            
+            if settings.nightMode && mapConfiguration is MKStandardMapConfiguration {
+                (mapConfiguration as? MKStandardMapConfiguration)?.elevationStyle = .realistic
+            }
+            
+            view.preferredConfiguration = mapConfiguration
+        } else {
+            switch AppSettings.MapStyle(rawValue: settings.mapStyle) {
+            case .standard:
+                view.mapType = .standard
+            case .satellite:
+                view.mapType = .hybrid
+            default:
+                view.mapType = .standard
+            }
+            
+            view.showsTraffic = settings.showTraffic
+            
+            view.pointOfInterestFilter = settings.showPOIs ? .includingAll : .excludingAll
+            
+            if #available(iOS 13.0, *) {
+                view.overrideUserInterfaceStyle = settings.nightMode ? .dark : .light
+            }
+        }
+    }
+    
     func updateAnnotations(view: MKMapView, annotations: [MapAnnotation]) {
-        // Entferne alle bestehenden Annotationen
         view.removeAnnotations(view.annotations)
         
-        // Füge neue Annotationen hinzu
         for annotation in annotations {
             let pin = MKPointAnnotation()
             pin.coordinate = annotation.coordinate
@@ -69,14 +111,12 @@ struct MapView: UIViewRepresentable {
                 annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
                 annotationView?.canShowCallout = true
                 
-                // Füge Infotaste hinzu
                 let infoButton = UIButton(type: .detailDisclosure)
                 annotationView?.rightCalloutAccessoryView = infoButton
             } else {
                 annotationView?.annotation = annotation
             }
             
-            // Setze Pin-Farbe basierend auf dem Aktivitätstyp
             if let markerView = annotationView as? MKMarkerAnnotationView {
                 if let title = annotation.title, let title = title {
                     if title.contains("Museum") {
@@ -100,7 +140,7 @@ struct MapView: UIViewRepresentable {
         func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
             if let annotation = view.annotation, let title = annotation.title {
                 print("Info-Button wurde geklickt für: \(title ?? "Unbekannt")")
-                // Hier könnte ein Aufruf erfolgen, um Details zu zeigen
+                // comming soon
             }
         }
     }

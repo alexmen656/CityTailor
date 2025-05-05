@@ -11,12 +11,14 @@ import SwiftUI
 struct CityTailorApp: App {
     let persistenceController = PersistenceController.shared
     @StateObject private var storeManager = StoreManager()
+    @StateObject private var appSettings = AppSettings()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .environmentObject(storeManager)
+                .environmentObject(appSettings)
         }
     }
 }

@@ -12,6 +12,7 @@ import Combine
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var settings: AppSettings
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954), // Berlin as default
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
@@ -78,6 +79,7 @@ struct ContentView: View {
                 annotations: mapAnnotations,
                 selectedAnnotation: selectedAnnotation
             )
+            .environmentObject(settings)
             .edgesIgnoringSafeArea(.all)
             .contentShape(Rectangle())
             .onTapGesture {
