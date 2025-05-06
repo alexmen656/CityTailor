@@ -21,6 +21,13 @@ struct DateSelectionView: View {
     @State private var selectedDayNumber: Int = 1
     @State private var showPremiumView = false
     
+    @State private var currentGenerationStep = 0
+    @State private var generationSteps = 0
+    @State private var generationProgress: Float = 0.0
+    @State private var targetProgress: Float = 0.0
+    @State private var generationStatusText = ""
+    @State private var animationTimer: Timer? = nil
+    
     var tripLengthInDays: Int {
         Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
     }
@@ -63,8 +70,32 @@ struct DateSelectionView: View {
                         }
                     }) {
                         if isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
+                            VStack(spacing: 10) {
+                                // Fortschrittsbalken und Status anzeigen, wenn die Generierung läuft
+                                if generationSteps > 0 {
+                                    VStack(spacing: 6) {
+                                        ProgressView(value: generationProgress, total: 1.0)
+                                            .progressViewStyle(LinearProgressViewStyle())
+                                            .animation(.easeInOut, value: generationProgress)
+                                        
+                                        HStack {
+                                            Text(generationStatusText)
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            
+                                            Spacer()
+                                            
+                                            Text("\(Int(generationProgress * 100))%")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                } else {
+                                    // Standard-Ladeindikator, wenn die Generierung noch nicht begonnen hat
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                }
+                            }
                         } else {
                             Text("Generate Travel Plan")
                                 .frame(maxWidth: .infinity)
@@ -143,14 +174,19 @@ struct DateSelectionView: View {
     func sendDataToBackend() {
         isLoading = true
         
-        // Für API-Anfragen benötigen wir immer das ISO-Format (YYYY-MM-DD)
+        self.generationSteps = tripLengthInDays + 2 
+        self.currentGenerationStep = 0
+        self.generationProgress = 0.0
+        self.targetProgress = 0.0
+        self.generationStatusText = "Bereite die Generierung vor..."
+        
+        simulateProgressForStep()
+        
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         
-        // Lade die Nutzerinteressen
         let userInterests = InterestsView.loadInterests()
         
-        // Erstelle ein Dictionary mit den Top-Interessen und ihren Bewertungen
         let interestsData = userInterests.map { [
             "name": $0.name,
             "rating": $0.rating
@@ -180,41 +216,58 @@ struct DateSelectionView: View {
             request.httpBody = jsonData
             
             URLSession.shared.dataTask(with: request) { data, response, error in
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    
-                    if let error = error {
+                // Die eigentliche API-Anfrage wurde schon beim Start abgesendet.
+                // Wir warten mit der Verarbeitung der Antwort, bis die animierte Generierung abgeschlossen ist
+                
+                if let error = error {
+                    DispatchQueue.main.async {
+                        self.isLoading = false
                         self.alertMessage = "Fehler: \(error.localizedDescription)"
                         self.showAlert = true
-                        return
                     }
-                    
-                    guard let httpResponse = response as? HTTPURLResponse else {
+                    return
+                }
+                
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    DispatchQueue.main.async {
+                        self.isLoading = false
                         self.alertMessage = "Ungültige Serverantwort"
                         self.showAlert = true
-                        return
                     }
-                    
-                    if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
-                        if let data = data {
-                            do {
-                                let decoder = JSONDecoder()
-                                let backendResponse = try decoder.decode(BackendResponse.self, from: data)
-                                self.travelPlan = backendResponse.data
-                                
-                                // Gib den Travel Plan an die ContentView zurück
-                                if let onTravelPlanReceived = self.onTravelPlanReceived {
-                                    onTravelPlanReceived(backendResponse.data)
+                    return
+                }
+                
+                if httpResponse.statusCode == 200 || httpResponse.statusCode == 201, let data = data {
+                    do {
+                        let decoder = JSONDecoder()
+                        let backendResponse = try decoder.decode(BackendResponse.self, from: data)
+                        
+                        // Wir speichern die Antwort, aber verarbeiten sie erst,
+                        // wenn die animierte Generierung abgeschlossen ist
+                        DispatchQueue.main.async {
+                            if self.currentGenerationStep >= self.generationSteps {
+                                self.processResponse(backendResponse)
+                            } else {
+                                // Wenn die Generierung noch läuft, warten wir bis zur Fertigstellung
+                                Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
+                                    if self.currentGenerationStep >= self.generationSteps {
+                                        timer.invalidate()
+                                        self.processResponse(backendResponse)
+                                    }
                                 }
-                                
-                                self.presentationMode.wrappedValue.dismiss()
-                            } catch {
-                                print("Fehler beim Dekodieren: \(error)")
-                                self.alertMessage = "Fehler beim Verarbeiten der Daten: \(error.localizedDescription)"
-                                self.showAlert = true
                             }
                         }
-                    } else {
+                    } catch {
+                        print("Fehler beim Dekodieren: \(error)")
+                        DispatchQueue.main.async {
+                            self.isLoading = false
+                            self.alertMessage = "Fehler beim Verarbeiten der Daten: \(error.localizedDescription)"
+                            self.showAlert = true
+                        }
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.isLoading = false
                         self.alertMessage = "Server-Fehler: Status \(httpResponse.statusCode)"
                         self.showAlert = true
                     }
@@ -225,5 +278,57 @@ struct DateSelectionView: View {
             self.alertMessage = "Fehler beim Erstellen der JSON-Daten: \(error.localizedDescription)"
             self.showAlert = true
         }
+    }
+    
+    // Hilfsfunction zur Simulation des Fortschritts
+    private func simulateProgressForStep() {
+        guard currentGenerationStep < generationSteps else { return }
+        
+        // Status-Text basierend auf aktuellem Schritt aktualisieren
+        if currentGenerationStep == 0 {
+            generationStatusText = "Bereite die Generierung vor..."
+        } else if currentGenerationStep <= tripLengthInDays {
+            generationStatusText = "Generiere Tag \(currentGenerationStep) von \(tripLengthInDays)..."
+        } else {
+            generationStatusText = "Finalisiere Reiseplan..."
+        }
+        
+        targetProgress = Float(currentGenerationStep) / Float(generationSteps)
+        
+        let delay: Double
+        if currentGenerationStep == 0 {
+            delay = 2.2
+        } else if currentGenerationStep <= tripLengthInDays {
+            delay = 3.3 
+        } else {
+            delay = 2.0 
+        }
+        
+        animationTimer?.invalidate()
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+            if self.generationProgress < self.targetProgress {
+                self.generationProgress += 0.01
+            } else {
+                timer.invalidate()
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            self.currentGenerationStep += 1
+            self.simulateProgressForStep()
+        }
+    }
+    
+    // Verarbeiten der Backend-Antwort
+    private func processResponse(_ backendResponse: BackendResponse) {
+        self.travelPlan = backendResponse.data
+        self.isLoading = false
+        
+        // Gib den Travel Plan an die ContentView zurück
+        if let onTravelPlanReceived = self.onTravelPlanReceived {
+            onTravelPlanReceived(backendResponse.data)
+        }
+        
+        self.presentationMode.wrappedValue.dismiss()
     }
 }
