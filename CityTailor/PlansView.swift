@@ -27,11 +27,11 @@ struct PlansView: View {
                                 .font(.system(size: 36))
                                 .foregroundColor(.yellow)
                             
-                            Text("Limit erreicht: Maximale Anzahl von Reiseplänen (3)")
+                            Text(languageManager.localize("limit_reached_message").replacingOccurrences(of: "{0}", with: "\(TravelPlanStore.FREE_PLAN_LIMIT)"))
                                 .font(.headline)
                                 .multilineTextAlignment(.center)
                             
-                            Text("Upgrade auf Premium für unbegrenzte Reisepläne")
+                            Text(languageManager.localize("unlimited_plans"))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -39,7 +39,7 @@ struct PlansView: View {
                             Button(action: {
                                 showPremiumView = true
                             }) {
-                                Text("Upgrade auf Premium")
+                                Text(languageManager.localize("upgrade_to_premium"))
                                     .foregroundColor(.white)
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 10)
@@ -56,7 +56,7 @@ struct PlansView: View {
                 else if !storeManager.isPremium() && remainingFreePlans > 0 {
                     Section {
                         HStack {
-                            Text("Verbleibende kostenlose Reisepläne: \(remainingFreePlans)")
+                            Text("\(languageManager.localize("remaining_free_plans")): \(remainingFreePlans)")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             
@@ -65,7 +65,7 @@ struct PlansView: View {
                             Button(action: {
                                 showPremiumView = true
                             }) {
-                                Text("Unbegrenzt")
+                                Text(languageManager.localize("unlimited_plans"))
                                     .font(.caption)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
@@ -83,10 +83,10 @@ struct PlansView: View {
                             .font(.system(size: 60))
                             .foregroundColor(.gray)
                         
-                        Text("Noch keine Reisepläne gespeichert")
+                        Text(languageManager.localize("no_plans_saved"))
                             .font(.headline)
                         
-                        Text("Ihre gespeicherten Reisepläne erscheinen hier")
+                        Text(languageManager.localize("plans_appear_here"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -155,7 +155,7 @@ struct PlansView: View {
                                     }
                                     
                                     if let imageInfo = plan.imageInfo {
-                                        Text("Foto: \(imageInfo.photographer)")
+                                        Text("\(languageManager.localize("photo")): \(imageInfo.photographer)")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
@@ -167,7 +167,7 @@ struct PlansView: View {
                     .onDelete(perform: deletePlans)
                 }
             }
-            .navigationTitle("Meine Reisepläne")
+            .navigationTitle(languageManager.localize("my_travel_plans"))
             .onAppear {
                 loadSavedPlans()
             }

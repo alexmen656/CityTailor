@@ -4,6 +4,7 @@ struct DateSelectionView: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var storeManager: StoreManager
+    @EnvironmentObject private var languageManager: LanguageManager
     
     let locationName: String
     var onTravelPlanReceived: ((TravelPlan) -> Void)? = nil
@@ -13,7 +14,7 @@ struct DateSelectionView: View {
     @State private var isLoading = false
     @State private var showAlert = false
     @State private var alertMessage = ""
-    @State private var alertTitle = "Backend-Benachrichtigung"
+    @State private var alertTitle = ""
     @State private var showPremiumOffer = false
     
     @State private var travelPlan: TravelPlan?
@@ -35,24 +36,24 @@ struct DateSelectionView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Reiseziel")) {
+                Section(header: Text(languageManager.localize("destination"))) {
                     HStack {
-                        Text("Ort:")
+                        Text(languageManager.localize("location") + ":")
                         Spacer()
                         Text(locationName)
                             .bold()
                     }
                 }
                 
-                Section(header: Text("Reisezeitraum")) {
-                    DatePicker("Anreisedatum", selection: $startDate, displayedComponents: .date)
+                Section(header: Text(languageManager.localize("travel_period"))) {
+                    DatePicker(languageManager.localize("arrival_date"), selection: $startDate, displayedComponents: .date)
                     
-                    DatePicker("Abreisedatum", selection: $endDate, in: startDate..., displayedComponents: .date)
+                    DatePicker(languageManager.localize("departure_date"), selection: $endDate, in: startDate..., displayedComponents: .date)
                     
                     HStack {
-                        Text("Aufenthaltsdauer:")
+                        Text(languageManager.localize("duration") + ":")
                         Spacer()
-                        Text("\(tripLengthInDays) \(tripLengthInDays == 1 ? "Tag" : "Tage")")
+                        Text("\(tripLengthInDays) \(tripLengthInDays == 1 ? languageManager.localize("day_singular") : languageManager.localize("days"))")
                             .bold()
                     }
                 }
@@ -61,8 +62,8 @@ struct DateSelectionView: View {
                     Button(action: {
                         // Prüfe, ob der Nutzer noch einen Plan erstellen darf
                         if !storeManager.isPremium() && !TravelPlanStore.shared.canSaveTravelPlan(isPremium: false, context: viewContext) {
-                            alertTitle = "Limit erreicht"
-                            alertMessage = "Sie haben das Maximum von \(TravelPlanStore.FREE_PLAN_LIMIT) Reiseplänen für die kostenlose Version erreicht. Upgrade auf Premium für unbegrenzte Reisepläne."
+                            alertTitle = languageManager.localize("limit_reached")
+                            alertMessage = languageManager.localize("limit_reached_message").replacingOccurrences(of: "{0}", with: "\(TravelPlanStore.FREE_PLAN_LIMIT)")
                             showPremiumOffer = true
                             showAlert = true
                         } else {
@@ -97,7 +98,7 @@ struct DateSelectionView: View {
                                 }
                             }
                         } else {
-                            Text("Generate Travel Plan")
+                            Text(languageManager.localize("generate_plan"))
                                 .frame(maxWidth: .infinity)
                                 .bold()
                         }
@@ -110,14 +111,14 @@ struct DateSelectionView: View {
                 if !storeManager.isPremium() {
                     let remaining = TravelPlanStore.shared.getRemainingFreePlans(context: viewContext)
                     
-                    Section(header: Text("Kostenloses Konto")) {
+                    Section(header: Text(languageManager.localize("free_account"))) {
                         HStack {
                             Image(systemName: "doc.text")
                                 .foregroundColor(.blue)
-                            Text("Verbleibende kostenlose Pläne")
+                            Text(languageManager.localize("remaining_free_plans"))
                             Spacer()
                             
-                            Text("\(remaining) von \(TravelPlanStore.FREE_PLAN_LIMIT)")
+                            Text("\(remaining) \(languageManager.localize("of")) \(TravelPlanStore.FREE_PLAN_LIMIT)")
                                 .foregroundColor(.secondary)
                         }
                         
@@ -127,7 +128,7 @@ struct DateSelectionView: View {
                             HStack {
                                 Image(systemName: "crown.fill")
                                     .foregroundColor(.yellow)
-                                Text("Upgrade auf Premium")
+                                Text(languageManager.localize("upgrade_to_premium"))
                                     .foregroundColor(.blue)
                                 Spacer()
                                 Image(systemName: "chevron.right")
@@ -138,8 +139,8 @@ struct DateSelectionView: View {
                     }
                 }
             }
-            .navigationTitle("Reiseplanung")
-            .navigationBarItems(trailing: Button("Schließen") {
+            .navigationTitle(languageManager.localize("travel_period"))
+            .navigationBarItems(trailing: Button(languageManager.localize("close")) {
                 presentationMode.wrappedValue.dismiss()
             })
             .alert(isPresented: $showAlert) {
@@ -147,16 +148,16 @@ struct DateSelectionView: View {
                     return Alert(
                         title: Text(alertTitle),
                         message: Text(alertMessage),
-                        primaryButton: .default(Text("Upgrade auf Premium")) {
+                        primaryButton: .default(Text(languageManager.localize("upgrade_to_premium"))) {
                             showPremiumView = true
                         },
-                        secondaryButton: .cancel(Text("Abbrechen"))
+                        secondaryButton: .cancel(Text(languageManager.localize("cancel")))
                     )
                 } else {
                     return Alert(
                         title: Text(alertTitle),
                         message: Text(alertMessage),
-                        dismissButton: .default(Text("OK"))
+                        dismissButton: .default(Text(languageManager.localize("ok")))
                     )
                 }
             }
@@ -178,7 +179,7 @@ struct DateSelectionView: View {
         self.currentGenerationStep = 0
         self.generationProgress = 0.0
         self.targetProgress = 0.0
-        self.generationStatusText = "Bereite die Generierung vor..."
+        updateGenerationStatusText()
         
         simulateProgressForStep()
         
@@ -201,7 +202,8 @@ struct DateSelectionView: View {
         ]
         
         guard let url = URL(string: "https://city-tailor-backend-7yq4wmveb-alexmen656s-projects.vercel.app/api/trips") else {
-            self.alertMessage = "Ungültige URL"
+            self.alertTitle = languageManager.localize("backend_notification")
+            self.alertMessage = languageManager.localize("invalid_url")
             self.showAlert = true
             self.isLoading = false
             return
@@ -216,13 +218,11 @@ struct DateSelectionView: View {
             request.httpBody = jsonData
             
             URLSession.shared.dataTask(with: request) { data, response, error in
-                // Die eigentliche API-Anfrage wurde schon beim Start abgesendet.
-                // Wir warten mit der Verarbeitung der Antwort, bis die animierte Generierung abgeschlossen ist
-                
                 if let error = error {
                     DispatchQueue.main.async {
                         self.isLoading = false
-                        self.alertMessage = "Fehler: \(error.localizedDescription)"
+                        self.alertTitle = languageManager.localize("backend_notification")
+                        self.alertMessage = error.localizedDescription
                         self.showAlert = true
                     }
                     return
@@ -231,7 +231,8 @@ struct DateSelectionView: View {
                 guard let httpResponse = response as? HTTPURLResponse else {
                     DispatchQueue.main.async {
                         self.isLoading = false
-                        self.alertMessage = "Ungültige Serverantwort"
+                        self.alertTitle = languageManager.localize("backend_notification")
+                        self.alertMessage = languageManager.localize("invalid_server_response")
                         self.showAlert = true
                     }
                     return
@@ -261,22 +262,38 @@ struct DateSelectionView: View {
                         print("Fehler beim Dekodieren: \(error)")
                         DispatchQueue.main.async {
                             self.isLoading = false
-                            self.alertMessage = "Fehler beim Verarbeiten der Daten: \(error.localizedDescription)"
+                            self.alertTitle = languageManager.localize("backend_notification")
+                            self.alertMessage = languageManager.localize("data_processing_error").replacingOccurrences(of: "{0}", with: error.localizedDescription)
                             self.showAlert = true
                         }
                     }
                 } else {
                     DispatchQueue.main.async {
                         self.isLoading = false
-                        self.alertMessage = "Server-Fehler: Status \(httpResponse.statusCode)"
+                        self.alertTitle = languageManager.localize("backend_notification")
+                        self.alertMessage = languageManager.localize("server_error").replacingOccurrences(of: "{0}", with: "\(httpResponse.statusCode)")
                         self.showAlert = true
                     }
                 }
             }.resume()
         } catch {
             self.isLoading = false
-            self.alertMessage = "Fehler beim Erstellen der JSON-Daten: \(error.localizedDescription)"
+            self.alertTitle = languageManager.localize("backend_notification")
+            self.alertMessage = languageManager.localize("json_error").replacingOccurrences(of: "{0}", with: error.localizedDescription)
             self.showAlert = true
+        }
+    }
+    
+    // Hilfsfunktion zur Aktualisierung des Generierungsstatus-Texts
+    private func updateGenerationStatusText() {
+        if currentGenerationStep == 0 {
+            generationStatusText = languageManager.localize("preparing_generation")
+        } else if currentGenerationStep <= tripLengthInDays {
+            generationStatusText = languageManager.localize("generating_day")
+                .replacingOccurrences(of: "{0}", with: "\(currentGenerationStep)")
+                .replacingOccurrences(of: "{1}", with: "\(tripLengthInDays)")
+        } else {
+            generationStatusText = languageManager.localize("finalizing_plan")
         }
     }
     
@@ -285,13 +302,7 @@ struct DateSelectionView: View {
         guard currentGenerationStep < generationSteps else { return }
         
         // Status-Text basierend auf aktuellem Schritt aktualisieren
-        if currentGenerationStep == 0 {
-            generationStatusText = "Bereite die Generierung vor..."
-        } else if currentGenerationStep <= tripLengthInDays {
-            generationStatusText = "Generiere Tag \(currentGenerationStep) von \(tripLengthInDays)..."
-        } else {
-            generationStatusText = "Finalisiere Reiseplan..."
-        }
+        updateGenerationStatusText()
         
         targetProgress = Float(currentGenerationStep) / Float(generationSteps)
         

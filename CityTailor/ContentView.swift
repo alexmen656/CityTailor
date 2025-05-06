@@ -44,7 +44,6 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Content basierend auf ausgewähltem Tab
             Group {
                 if tabSelection.selectedTab == 0 {
                     PlansView()
@@ -53,11 +52,10 @@ struct ContentView: View {
                     mainView
                 } else if tabSelection.selectedTab == 2 {
                     SettingsView(isModal: false)
-                        .padding(.bottom, 70) // Padding für die TabBar-Höhe
+                        .padding(.bottom, 70)
                 }
             }
             
-            // Benutzerdefinierte TabBar
             VStack {
                 Spacer()
                 CustomTabBar(selectedTab: $tabSelection.selectedTab)
@@ -68,7 +66,6 @@ struct ContentView: View {
         .edgesIgnoringSafeArea(.bottom)
     }
     
-    // Hauptinhalt der App in einer Variable ausgelagert für bessere Lesbarkeit
     var mainView: some View {
         ZStack(alignment: .top) {
             MapView(
@@ -136,7 +133,7 @@ struct ContentView: View {
                     )
                 }
             }
-            .padding(.bottom, 90) // Padding für die gesamte VStack, damit die TabBar nicht den Inhalt überdeckt
+            .padding(.bottom, 90)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView(isModal: true)
@@ -170,7 +167,6 @@ struct ContentView: View {
                     onTravelPlanReceived: { plan in
                         self.travelPlan = plan
                         
-                        // Überprüfe, ob der Benutzer den Plan speichern darf (nur für neue Pläne)
                         if TravelPlanStore.shared.canSaveTravelPlan(isPremium: storeManager.isPremium(), context: viewContext) {
                             TravelPlanStore.shared.saveTravelPlan(plan, context: viewContext)
                             self.showSaveFeedback = true
@@ -185,7 +181,11 @@ struct ContentView: View {
             }
         }
         .alert(isPresented: $showSaveFeedback) {
-            Alert(title: Text("Reiseplan gespeichert"), message: Text("Ihr Reiseplan wurde erfolgreich gespeichert."), dismissButton: .default(Text("OK")))
+            Alert(
+                title: Text(languageManager.localize("travel_plan_saved")), 
+                message: Text(languageManager.localize("travel_plan_saved_message")), 
+                dismissButton: .default(Text(languageManager.localize("ok")))
+            )
         }
     }
     
@@ -375,12 +375,13 @@ struct DayButtonsView: View {
 struct TravelPlanSummaryView: View {
     let plan: TravelPlan
     let onTap: () -> Void
+    @EnvironmentObject private var languageManager: LanguageManager
     
     var body: some View {
         Button(action: onTap) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Reiseplan für \(plan.location)")
+                    Text("\(languageManager.localize("travel_plan_for")) \(plan.location)")
                         .font(.headline)
                         .foregroundColor(.white)
                     
@@ -411,6 +412,7 @@ struct TravelPlanSummaryView: View {
 struct ActivityDetailView: View {
     let activity: Activity
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject private var languageManager: LanguageManager
     
     var body: some View {
         NavigationView {
@@ -449,8 +451,8 @@ struct ActivityDetailView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Aktivität")
-            .navigationBarItems(trailing: Button("Fertig") {
+            .navigationTitle(languageManager.localize("activity"))
+            .navigationBarItems(trailing: Button(languageManager.localize("done")) {
                 presentationMode.wrappedValue.dismiss()
             })
         }
@@ -458,14 +460,14 @@ struct ActivityDetailView: View {
     
     func categoryColor(for category: String) -> Color {
         switch category.lowercased() {
-        case "kunst": return Color.purple
-        case "geschichte": return Color.orange
-        case "architektur": return Color.blue
-        case "gastronomie": return Color.red
-        case "shopping": return Color.pink
-        case "nachtleben": return Color.indigo
-        case "kultur": return Color.teal
-        case "sightseeing": return Color.green
+        case languageManager.localize("art").lowercased(): return Color.purple
+        case languageManager.localize("history").lowercased(): return Color.orange
+        case languageManager.localize("architecture").lowercased(): return Color.blue
+        case languageManager.localize("gastronomy").lowercased(): return Color.red
+        case languageManager.localize("shopping").lowercased(): return Color.pink
+        case languageManager.localize("nightlife").lowercased(): return Color.indigo
+        case languageManager.localize("culture").lowercased(): return Color.teal
+        case languageManager.localize("sightseeing").lowercased(): return Color.green
         default: return Color.gray
         }
     }

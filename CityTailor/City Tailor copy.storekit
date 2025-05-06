@@ -101,12 +101,12 @@
           "localizations" : [
             {
               "description" : "Monatliches Premium-Abonnement",
-              "displayName" : "CityTailor Premium",
+              "displayName" : "Monatlich",
               "locale" : "de"
             },
             {
               "description" : "Monthly premium subscription",
-              "displayName" : "CityTailor Premium",
+              "displayName" : "Monthly",
               "locale" : "en_US"
             }
           ],
@@ -131,12 +131,12 @@
           "localizations" : [
             {
               "description" : "Jährliches Premium-Abonnement (Spare 20%)",
-              "displayName" : "CityTailor Premium",
+              "displayName" : "Jährlich",
               "locale" : "de"
             },
             {
               "description" : "Yearly premium subscription (Save 20%)",
-              "displayName" : "CityTailor Premium",
+              "displayName" : "Yearly",
               "locale" : "en_US"
             }
           ],

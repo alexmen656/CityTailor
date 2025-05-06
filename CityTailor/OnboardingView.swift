@@ -13,11 +13,11 @@ struct OnboardingView: View {
                 .font(.system(size: 80))
                 .foregroundColor(.blue)
             
-            Text("Willkommen bei CityTailor")
+            Text(languageManager.localize("welcome_to_citytailor"))
                 .font(.largeTitle)
                 .bold()
             
-            Text("Personalisieren Sie Ihre Reisepläne, indem Sie uns mitteilen, woran Sie interessiert sind")
+            Text(languageManager.localize("personalize_travel_plans"))
                 .font(.headline)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
@@ -27,7 +27,7 @@ struct OnboardingView: View {
             Button(action: {
                 showingInterests = true
             }) {
-                Text("Interessen festlegen")
+                Text(languageManager.localize("set_interests"))
                     .font(.headline)
                     .foregroundColor(.white)
                     .padding()
@@ -41,7 +41,7 @@ struct OnboardingView: View {
                 UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
                 isFirstLaunch = false
             }) {
-                Text("Überspringen")
+                Text(languageManager.localize("skip"))
                     .foregroundColor(.gray)
             }
             .padding(.bottom, 30)
