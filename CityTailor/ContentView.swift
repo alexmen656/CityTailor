@@ -34,6 +34,7 @@ struct ContentView: View {
     @State private var selectedActivity: Activity? = nil
     @State private var selectedDayNumber: Int = 1
     @State private var showSaveFeedback = false
+    @State private var selectedTab = 1
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
@@ -41,35 +42,27 @@ struct ContentView: View {
     private var items: FetchedResults<Item>
 
     var body: some View {
-        TabView {
-            mainView
-                .tabItem {
-                    Image(systemName: "map")
-                    Text(languageManager.localize("map"))
+        ZStack(alignment: .bottom) {
+            // Content basierend auf ausgewähltem Tab
+            Group {
+                if selectedTab == 0 {
+                    PlansView()
+                } else if selectedTab == 1 {
+                    mainView
+                } else if selectedTab == 2 {
+                    SettingsView()
                 }
+            }
             
-            PlansView()
-                .tabItem {
-                    Image(systemName: "map.fill")
-                    Text(languageManager.localize("plans"))
-                }
-            
-     ///       FavoritesView()
-        //        .tabItem {
-          //          Image(systemName: "heart")
-            //        Text("Favoriten")
-              //  }
-            
-            SettingsView()
-                .tabItem {
-                    Image(systemName: "gear")
-                    Text(languageManager.localize("settings"))
-                }
+            // Benutzerdefinierte TabBar
+            VStack {
+                Spacer()
+                CustomTabBar(selectedTab: $selectedTab)
+                    .edgesIgnoringSafeArea(.bottom)
+            }
+            .ignoresSafeArea(.keyboard)
         }
-        .onAppear {
-            // TabBar mit weißem Hintergrund
-            UITabBar.appearance().backgroundColor = .white
-        }
+        .edgesIgnoringSafeArea(.bottom)
     }
     
     // Hauptinhalt der App in einer Variable ausgelagert für bessere Lesbarkeit
