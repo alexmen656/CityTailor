@@ -1,6 +1,6 @@
-# TravelPlanner
+# CityTailor
 
-**TravelPlanner** is a native iOS app that creates personalized city travel plans based on your interests, travel dates, and weather conditions.
+**CityTailor** is a native iOS app that creates personalized city travel plans based on your interests, travel dates, and weather conditions.
 
 ## 🌍 About the Project
 
