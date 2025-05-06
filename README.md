@@ -46,6 +46,21 @@ This app lets users:
 
 This is a solo Hack Club project, but contributions, feedback, and ideas are welcome! Submit issues or PRs if you're excited about the project.
 
+## Ideas (Todos)
+| Feature                               | Status       |
+|---------------------------------------|--------------|
+| Android APP                           | 🔜 Planned   |
+| WatchOS APP                           | 🔜 Planned   |
+| Optimize for iPad/Mac                 | 🔜 Planned   |
+| Add Favicon                           | 🔜 Planned   |
+| Better AI model for premium users     | 🔜 Planned   |
+| Create App Store listing              | 🔜 Planned   |
+| Create website                        | 🔜 Planned   |
+| create web-based route planner        | 🔜 Planned   |
+| widgets                               | 🔜 Planned   |
+| fix pins issue                        | 🔜 Planned   |
+
+
 ## 📄 License
 
 MIT License — free for personal and commercial use.
