@@ -11,6 +11,7 @@ class AppSettings: ObservableObject {
         static let language = "language"
         static let useLocation = "useLocation"
         static let autoUpdates = "autoUpdates"
+        static let dateFormat = "dateFormat"
     }
     
     enum MapStyle: Int, CaseIterable {
@@ -21,6 +22,32 @@ class AppSettings: ObservableObject {
             switch self {
             case .standard: return "Standard"
             case .satellite: return "Satellit"
+            }
+        }
+    }
+    
+    // Enum für Datumsformate
+    enum DateFormat: Int, CaseIterable {
+        case system = 0      // Systemeinstellung (vom Gerät)
+        case european = 1    // DD.MM.YYYY
+        case american = 2    // MM/DD/YYYY
+        case iso = 3         // YYYY-MM-DD
+        
+        var name: String {
+            switch self {
+            case .system: return "System"
+            case .european: return "TT.MM.JJJJ"
+            case .american: return "MM/TT/JJJJ"
+            case .iso: return "JJJJ-MM-TT"
+            }
+        }
+        
+        var formatString: String {
+            switch self {
+            case .system: return ""
+            case .european: return "dd.MM.yyyy"
+            case .american: return "MM/dd/yyyy"
+            case .iso: return "yyyy-MM-dd"
             }
         }
     }
@@ -61,6 +88,11 @@ class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(autoUpdates, forKey: Keys.autoUpdates) }
     }
     
+    // Datumsformat-Einstellung
+    @Published var dateFormat: Int {
+        didSet { UserDefaults.standard.set(dateFormat, forKey: Keys.dateFormat) }
+    }
+    
     let languages = ["Deutsch", "English", "Français", "Español", "Italiano"]
     
     init() {
@@ -73,6 +105,7 @@ class AppSettings: ObservableObject {
         self.language = UserDefaults.standard.string(forKey: Keys.language) ?? "Deutsch"
         self.useLocation = UserDefaults.standard.bool(forKey: Keys.useLocation, defaultValue: true)
         self.autoUpdates = UserDefaults.standard.bool(forKey: Keys.autoUpdates, defaultValue: true)
+        self.dateFormat = UserDefaults.standard.integer(forKey: Keys.dateFormat, defaultValue: 0) // System als Standard
     }
     
     func resetToDefaults() {
@@ -85,12 +118,17 @@ class AppSettings: ObservableObject {
         language = "English"
         useLocation = true
         autoUpdates = true
+        dateFormat = 0 // System als Standard
     }
 }
 
 extension UserDefaults {
     func bool(forKey key: String, defaultValue: Bool = false) -> Bool {
         return object(forKey: key) as? Bool ?? defaultValue
+    }
+    
+    func integer(forKey key: String, defaultValue: Int = 0) -> Int {
+        return object(forKey: key) as? Int ?? defaultValue
     }
 }
 
@@ -104,7 +142,6 @@ struct SettingsView: View {
     @State private var showPremiumView = false
     @State private var showAbout = false
     
-    // Parameter zur Unterscheidung zwischen Modal und Tab
     var isModal: Bool = false
     
     var body: some View {
@@ -183,6 +220,13 @@ struct SettingsView: View {
                     .onChange(of: settings.language) { newLanguage in
                         print("DEBUG: Language changed to \(newLanguage) in settings")
                         languageManager.setLanguage(LanguageManager.LanguageCode.from(displayName: newLanguage))
+                    }
+                    
+                    // Datumsformat-Picker
+                    Picker(selection: $settings.dateFormat, label: Label(languageManager.localize("date_format"), systemImage: "calendar")) {
+                        ForEach(AppSettings.DateFormat.allCases, id: \.rawValue) { format in
+                            Text(format.name).tag(format.rawValue)
+                        }
                     }
                     
                     // Comming in v2

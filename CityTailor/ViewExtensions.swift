@@ -100,3 +100,57 @@ struct TabBarButton: View {
         }
     }
 }
+
+// DateFormatter-Klasse zur Verwaltung der Datumsformatierung nach Benutzereinstellungen
+class DateFormatterUtils {
+    static func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        
+        // Verwende die Benutzereinstellungen aus UserDefaults
+        let dateFormat = UserDefaults.standard.integer(forKey: "dateFormat")
+        
+        switch dateFormat {
+        case AppSettings.DateFormat.system.rawValue:
+            formatter.dateStyle = .short
+            formatter.timeStyle = .none
+        case AppSettings.DateFormat.european.rawValue:
+            formatter.dateFormat = "dd.MM.yyyy"
+        case AppSettings.DateFormat.american.rawValue:
+            formatter.dateFormat = "MM/dd/yyyy"
+        case AppSettings.DateFormat.iso.rawValue:
+            formatter.dateFormat = "yyyy-MM-dd"
+        default:
+            formatter.dateStyle = .short
+            formatter.timeStyle = .none
+        }
+        
+        return formatter.string(from: date)
+    }
+    
+    static func formatDateString(_ dateString: String) -> String {
+        // Konvertiere den String in ein Date-Objekt (ISO-Format wird angenommen)
+        let inputFormatter = DateFormatter()
+        inputFormatter.dateFormat = "yyyy-MM-dd"
+        
+        guard let date = inputFormatter.date(from: dateString) else {
+            return dateString // Bei Fehler: Originalstring zurückgeben
+        }
+        
+        // Verwende die formatDate-Funktion für die richtige Formatierung
+        return formatDate(date)
+    }
+    
+    // Formatiert ein Datum im Kurzformat für die Tag-Buttons (dd.MM.)
+    static func formatDateShort(_ dateString: String) -> String {
+        let inputFormatter = DateFormatter()
+        inputFormatter.dateFormat = "yyyy-MM-dd"
+        
+        guard let date = inputFormatter.date(from: dateString) else {
+            return dateString
+        }
+        
+        let outputFormatter = DateFormatter()
+        outputFormatter.dateFormat = "dd.MM."
+        return outputFormatter.string(from: date)
+    }
+}

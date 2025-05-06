@@ -136,6 +136,9 @@ class LanguageManager: ObservableObject {
                 "done": "Fertig",
                 "travel_plan_for": "Reiseplan für",
                 
+                // Datumsformat
+                "date_format": "Datumsformat",
+                
                 // Premium View
                 "citytailor_premium": "CityTailor Premium",
                 "experience_best": "Erleben Sie das Beste von CityTailor",
@@ -204,6 +207,9 @@ class LanguageManager: ObservableObject {
                 "reset_defaults": "Reset to Defaults",
                 "done": "Done",
                 "travel_plan_for": "Travel Plan for",
+                
+                // Datumsformat
+                "date_format": "Date Format",
                 
                 // Premium View
                 "citytailor_premium": "CityTailor Premium",
@@ -274,6 +280,9 @@ class LanguageManager: ObservableObject {
                 "done": "Terminé",
                 "travel_plan_for": "Plan de Voyage pour",
                 
+                // Datumsformat
+                "date_format": "Format de Date",
+                
                 // Premium View
                 "citytailor_premium": "CityTailor Premium",
                 "experience_best": "Découvrez le meilleur de CityTailor",
@@ -343,6 +352,9 @@ class LanguageManager: ObservableObject {
                 "done": "Hecho",
                 "travel_plan_for": "Plan de Viaje para",
                 
+                // Datumsformat
+                "date_format": "Formato de Fecha",
+                
                 // Premium View
                 "citytailor_premium": "CityTailor Premium",
                 "experience_best": "Experimente lo mejor de CityTailor",
@@ -411,6 +423,9 @@ class LanguageManager: ObservableObject {
                 "reset_defaults": "Ripristina Impostazioni",
                 "done": "Fine",
                 "travel_plan_for": "Piano di Viaggio per",
+                
+                // Datumsformat
+                "date_format": "Formato Data",
                 
                 // Premium View
                 "citytailor_premium": "CityTailor Premium",

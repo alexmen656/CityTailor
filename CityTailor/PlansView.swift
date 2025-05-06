@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PlansView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var settings: AppSettings
     @State private var savedPlans: [SavedTravelPlanViewModel] = []
 
     var body: some View {
@@ -78,18 +79,18 @@ struct PlansView: View {
                                         
                                         Spacer()
                                         
-                                        Text(formatDate(plan.creationDate))
+                                        Text(DateFormatterUtils.formatDate(plan.creationDate))
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
                                     
                                     HStack {
-                                        Text("\(formatDateString(plan.startDate)) - \(formatDateString(plan.endDate))")
+                                        Text("\(DateFormatterUtils.formatDateString(plan.startDate)) - \(DateFormatterUtils.formatDateString(plan.endDate))")
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                         
                                         Spacer()
-                                                                            }
+                                    }
                                     
                                     if let imageInfo = plan.imageInfo {
                                         Text("Foto: \(imageInfo.photographer)")
@@ -109,23 +110,6 @@ struct PlansView: View {
                 loadSavedPlans()
             }
         }
-    }
-    
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd.MM.yyyy" 
-        return formatter.string(from: date)
-    }
-    
-    private func formatDateString(_ dateString: String) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        
-        if let date = formatter.date(from: dateString) {
-            formatter.dateFormat = "dd.MM.yyyy"
-            return formatter.string(from: date)
-        }
-        return dateString
     }
     
     private func loadSavedPlans() {
