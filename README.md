@@ -61,6 +61,7 @@ This is a solo Hack Club project, but contributions, feedback, and ideas are wel
 | fix pins issue                        | 🔜 Planned   |
 | push messages                         | 🔜 Planned   |
 | make all settings functional          | 🔜 Planned   |
+| buy tickets through app               | 🔜 Planned   |
 
 ## 📄 License
 

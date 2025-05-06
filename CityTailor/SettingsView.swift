@@ -104,11 +104,14 @@ struct SettingsView: View {
     @State private var showPremiumView = false
     @State private var showAbout = false
     
+    // Parameter zur Unterscheidung zwischen Modal und Tab
+    var isModal: Bool = false
+    
     var body: some View {
         NavigationView {
             Form {
                 // Premium section
-                Section(header: Text(languageManager.localize("premium"))) {
+               /* Section(header: Text(languageManager.localize("premium"))) {*/
                     Button(action: {
                         showPremiumView = true
                     }) {
@@ -126,7 +129,7 @@ struct SettingsView: View {
                                 .foregroundColor(.gray)
                         }
                     }
-                }
+               /* }*/
                 
                 // Karteneinstellungen
                 Section(header: Text(languageManager.localize("map_settings"))) {
@@ -161,6 +164,8 @@ struct SettingsView: View {
                 
                 // Allgemeine Einstellungen
                 Section(header: Text(languageManager.localize("general"))) {
+                                        // Comming in v2
+/*
                     Toggle(isOn: $settings.notificationsEnabled) {
                         Label(languageManager.localize("notifications"), systemImage: "bell.fill")
                     }
@@ -168,6 +173,7 @@ struct SettingsView: View {
                     Toggle(isOn: $settings.darkModeEnabled) {
                         Label(languageManager.localize("dark_mode"), systemImage: "moon.fill")
                     }
+                    */
                     
                     Picker(selection: $settings.language, label: Label(languageManager.localize("language"), systemImage: "globe")) {
                         ForEach(LanguageManager.LanguageCode.allCases, id: \.rawValue) { language in
@@ -179,8 +185,9 @@ struct SettingsView: View {
                         languageManager.setLanguage(LanguageManager.LanguageCode.from(displayName: newLanguage))
                     }
                     
-                    Toggle(languageManager.localize("use_location"), isOn: $settings.useLocation)
-                    Toggle(languageManager.localize("auto_updates"), isOn: $settings.autoUpdates)
+                    // Comming in v2
+                  /*  Toggle(languageManager.localize("use_location"), isOn: $settings.useLocation)
+                    Toggle(languageManager.localize("auto_updates"), isOn: $settings.autoUpdates) */
                 }
                 
                 // App-Informationen
@@ -191,11 +198,11 @@ struct SettingsView: View {
                         Label(languageManager.localize("about"), systemImage: "info.circle")
                     }
                     
-                    Link(destination: URL(string: "https://citytailor.com/privacy")!) {
+                    Link(destination: URL(string: "https://alex.polan.sk/privacy-policy.html")!) {
                         Label(languageManager.localize("privacy_policy"), systemImage: "lock.shield")
                     }
                     
-                    Link(destination: URL(string: "https://citytailor.com/terms")!) {
+                    Link(destination: URL(string: "https://alex.polan.sk/terms-of-use.html")!) {
                         Label(languageManager.localize("terms"), systemImage: "doc.text")
                     }
                 }
@@ -222,9 +229,9 @@ struct SettingsView: View {
             }
             .listStyle(InsetGroupedListStyle())
             .navigationTitle(languageManager.localize("settings"))
-            .navigationBarItems(trailing: Button(languageManager.localize("done")) {
+            .navigationBarItems(trailing: isModal ? Button(languageManager.localize("done")) {
                 presentationMode.wrappedValue.dismiss()
-            })
+            } : nil)
             .sheet(isPresented: $showInterestsView) {
                 InterestsView()
             }
@@ -235,7 +242,7 @@ struct SettingsView: View {
             .alert(isPresented: $showAbout) {
                 Alert(
                     title: Text("CityTailor"),
-                    message: Text("Eine KI-gestützte App zum Erstellen personalisierter Reisepläne.\n\n© 2025 CityTailor GmbH"),
+                    message: Text(languageManager.localize("about_message")),
                     dismissButton: .default(Text(languageManager.localize("done")))
                 )
             }

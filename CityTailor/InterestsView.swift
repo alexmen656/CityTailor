@@ -4,6 +4,8 @@ struct InterestsView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var interests: [Interest] = loadInterests()
     
+    var onComplete: (() -> Void)?
+    
     var body: some View {
         NavigationView {
             List {
@@ -34,7 +36,11 @@ struct InterestsView: View {
             .navigationTitle("Interessen")
             .navigationBarItems(trailing: Button("Fertig") {
                 saveInterests()
-                presentationMode.wrappedValue.dismiss()
+                if let onComplete = onComplete {
+                    onComplete()
+                } else {
+                    presentationMode.wrappedValue.dismiss()
+                }
             })
         }
     }

@@ -164,7 +164,10 @@ class LanguageManager: ObservableObject {
                 "per_year": "pro Jahr",
                 
                 // Additional Translation
-                "search_city": "Stadt suchen..."
+                "search_city": "Stadt suchen...",
+                
+                // About Message
+                "about_message": "Eine KI-gestützte App zum Erstellen personalisierter Reisepläne.\n\n© 2025 Alex Polan"
             ]
         case .en:
             return [
@@ -230,7 +233,10 @@ class LanguageManager: ObservableObject {
                 "per_year": "per year",
                 
                 // Additional Translation
-                "search_city": "Search city..."
+                "search_city": "Search city...",
+                
+                // About Message
+                "about_message": "An AI-powered app for creating personalized travel plans.\n\n© 2025 Alex Polan"
             ]
         case .fr:
             return [
@@ -296,7 +302,10 @@ class LanguageManager: ObservableObject {
                 "per_year": "par an",
                 
                 // Additional Translation
-                "search_city": "Rechercher une ville..."
+                "search_city": "Rechercher une ville...",
+                
+                // About Message
+                "about_message": "Une application basée sur l'IA pour créer des plans de voyage personnalisés.\n\n© 2025 Alex Polan"
             ]
         case .es:
             return [
@@ -362,7 +371,10 @@ class LanguageManager: ObservableObject {
                 "per_year": "por año",
                 
                 // Additional Translation
-                "search_city": "Buscar ciudad..."
+                "search_city": "Buscar ciudad...",
+                
+                // About Message
+                "about_message": "Una aplicación impulsada por IA para crear planes de viaje personalizados.\n\n© 2025 Alex Polan"
             ]
         case .it:
             return [
@@ -428,7 +440,10 @@ class LanguageManager: ObservableObject {
                 "per_year": "all'anno",
                 
                 // Additional Translation
-                "search_city": "Cerca città..."
+                "search_city": "Cerca città...",
+                
+                // About Message
+                "about_message": "Un'app basata sull'intelligenza artificiale per creare piani di viaggio personalizzati.\n\n© 2025 Alex Polan"
             ]
         }
     }

@@ -47,10 +47,12 @@ struct ContentView: View {
             Group {
                 if selectedTab == 0 {
                     PlansView()
+                        .padding(.bottom, 70) // Padding für die TabBar-Höhe
                 } else if selectedTab == 1 {
                     mainView
                 } else if selectedTab == 2 {
-                    SettingsView()
+                    SettingsView(isModal: false)
+                        .padding(.bottom, 70) // Padding für die TabBar-Höhe
                 }
             }
             
@@ -131,11 +133,12 @@ struct ContentView: View {
                             showDateSelectionView = true
                         }
                     )
+                    .padding(.bottom, 70) // Padding für die TabBar-Höhe
                 }
             }
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView()
+            SettingsView(isModal: true)
         }
         .sheet(isPresented: $showDateSelectionView, onDismiss: {
             if let plan = self.travelPlan, let dailyPlans = plan.dailyPlans {

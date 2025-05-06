@@ -13,17 +13,24 @@ struct CityTailorApp: App {
     @StateObject private var storeManager = StoreManager()
     @StateObject private var languageManager = LanguageManager()
     @StateObject private var appSettings = AppSettings()
+    @State private var isFirstLaunch = !UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .environmentObject(storeManager)
-                .environmentObject(languageManager)
-                .environmentObject(appSettings)
-                .onAppear {
-                    synchronizeLanguageSettings()
-                }
+            if isFirstLaunch {
+                OnboardingView(isFirstLaunch: $isFirstLaunch)
+                    .environmentObject(languageManager)
+                    .environmentObject(appSettings)
+            } else {
+                ContentView()
+                    .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                    .environmentObject(storeManager)
+                    .environmentObject(languageManager)
+                    .environmentObject(appSettings)
+                    .onAppear {
+                        synchronizeLanguageSettings()
+                    }
+            }
         }
     }
     
