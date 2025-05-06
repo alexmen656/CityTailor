@@ -59,7 +59,8 @@ This is a solo Hack Club project, but contributions, feedback, and ideas are wel
 | create web-based route planner        | 🔜 Planned   |
 | widgets                               | 🔜 Planned   |
 | fix pins issue                        | 🔜 Planned   |
-
+| push messages                         | 🔜 Planned   |
+| make all settings functional          | 🔜 Planned   |
 
 ## 📄 License
 
