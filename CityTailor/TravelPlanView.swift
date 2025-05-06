@@ -186,12 +186,7 @@ struct TravelPlanView: View {
     }
     
     func formatDateShort(_ dateString: String) -> String {
-        if let date = parseDate(dateString) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "dd.MM."
-            return formatter.string(from: date)
-        }
-        return dateString
+        return DateFormatterUtils.formatDateShort(dateString)
     }
     
     func parseDate(_ dateString: String) -> Date? {

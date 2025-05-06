@@ -133,9 +133,9 @@ struct ContentView: View {
                             showDateSelectionView = true
                         }
                     )
-                    .padding(.bottom, 70)
                 }
             }
+            .padding(.bottom, 90) // Padding für die gesamte VStack, damit die TabBar nicht den Inhalt überdeckt
         }
         .sheet(isPresented: $showSettings) {
             SettingsView(isModal: true)
@@ -242,14 +242,7 @@ struct ContentView: View {
     }
     
     func formatDateShort(_ dateString: String) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        
-        if let date = formatter.date(from: dateString) {
-            formatter.dateFormat = "dd.MM."
-            return formatter.string(from: date)
-        }
-        return dateString
+        return DateFormatterUtils.formatDateShort(dateString)
     }
 
     private func addItem() {
@@ -386,7 +379,7 @@ struct TravelPlanSummaryView: View {
                         .font(.headline)
                         .foregroundColor(.white)
                     
-                    Text("\(plan.period.startDate) - \(plan.period.endDate)")
+                    Text("\(DateFormatterUtils.formatDateString(plan.period.startDate)) - \(DateFormatterUtils.formatDateString(plan.period.endDate))")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.9))
                 }

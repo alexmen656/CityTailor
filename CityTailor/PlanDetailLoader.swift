@@ -28,7 +28,7 @@ struct PlanDetailLoader: View {
                                 .bold()
                                 .padding(.top)
                             
-                            Text("\(plan.startDate) bis \(plan.endDate)")
+                            Text("\(DateFormatterUtils.formatDateString(plan.startDate)) bis \(DateFormatterUtils.formatDateString(plan.endDate))")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                         }
@@ -221,13 +221,7 @@ struct PlanDetailLoader: View {
     }
     
     func formatDateShort(_ dateString: String) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        if let date = formatter.date(from: dateString) {
-            formatter.dateFormat = "dd.MM."
-            return formatter.string(from: date)
-        }
-        return dateString
+        return DateFormatterUtils.formatDateShort(dateString)
     }
     
     func categoryColor(for category: String) -> Color {

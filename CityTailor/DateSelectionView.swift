@@ -83,6 +83,7 @@ struct DateSelectionView: View {
     func sendDataToBackend() {
         isLoading = true
         
+        // Für API-Anfragen benötigen wir immer das ISO-Format (YYYY-MM-DD)
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         
