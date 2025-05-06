@@ -7,6 +7,7 @@ struct SearchBar: View {
     @Binding var showSettings: Bool
     @Binding var showSuggestions: Bool
     @FocusState private var isFocused: Bool
+    @EnvironmentObject private var languageManager: LanguageManager
     
     var body: some View {
         HStack {
@@ -17,12 +18,11 @@ struct SearchBar: View {
                 
                 ZStack(alignment: .leading) {
                     if text.isEmpty {
-                        Text("Stadt eingeben...")
+                        Text(languageManager.localize("search_city"))
                             .foregroundColor(.gray)
                             .allowsHitTesting(false)
                     }
                     
-                    // Vereinfachtes TextField ohne zusätzliche Modifikatoren, die den Fokus stören könnten
                     TextField("", text: $text)
                         .foregroundColor(.primary)
                         .focused($isFocused)
@@ -66,6 +66,5 @@ struct SearchBar: View {
                 isFocused = true
             }
         }
-        // WICHTIG: KEINE onChange-Handler für text mehr!
     }
 }

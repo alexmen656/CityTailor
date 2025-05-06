@@ -13,6 +13,7 @@ import Combine
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var languageManager: LanguageManager
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954), // Berlin as default
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
@@ -44,13 +45,13 @@ struct ContentView: View {
             mainView
                 .tabItem {
                     Image(systemName: "map")
-                    Text("Karte")
+                    Text(languageManager.localize("map"))
                 }
             
             PlansView()
                 .tabItem {
                     Image(systemName: "map.fill")
-                    Text("Pläne")
+                    Text(languageManager.localize("plans"))
                 }
             
      ///       FavoritesView()
@@ -62,7 +63,7 @@ struct ContentView: View {
             SettingsView()
                 .tabItem {
                     Image(systemName: "gear")
-                    Text("Einstellungen")
+                    Text(languageManager.localize("settings"))
                 }
         }
         .onAppear {

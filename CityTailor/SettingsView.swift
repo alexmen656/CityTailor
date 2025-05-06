@@ -82,7 +82,7 @@ class AppSettings: ObservableObject {
         nightMode = false
         notificationsEnabled = true
         darkModeEnabled = false
-        language = "Deutsch"
+        language = "English"
         useLocation = true
         autoUpdates = true
     }
@@ -98,6 +98,7 @@ struct SettingsView: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject private var storeManager: StoreManager
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var languageManager: LanguageManager
     
     @State private var showInterestsView = false
     @State private var showPremiumView = false
@@ -107,16 +108,16 @@ struct SettingsView: View {
         NavigationView {
             Form {
                 // Premium section
-                Section(header: Text("Premium")) {
+                Section(header: Text(languageManager.localize("premium"))) {
                     Button(action: {
                         showPremiumView = true
                     }) {
                         HStack {
                             if storeManager.isPremium() {
-                                Label("Premium aktiviert", systemImage: "checkmark.seal.fill")
+                                Label(languageManager.localize("premium_activated"), systemImage: "checkmark.seal.fill")
                                     .foregroundColor(.green)
                             } else {
-                                Label("Upgrade auf Premium", systemImage: "crown.fill")
+                                Label(languageManager.localize("upgrade_to_premium"), systemImage: "crown.fill")
                                     .foregroundColor(.yellow)
                             }
                             Spacer()
@@ -128,29 +129,29 @@ struct SettingsView: View {
                 }
                 
                 // Karteneinstellungen
-                Section(header: Text("Karteneinstellungen")) {
-                    Toggle("Verkehr anzeigen", isOn: $settings.showTraffic)
-                    Toggle("Points of Interest anzeigen", isOn: $settings.showPOIs)
+                Section(header: Text(languageManager.localize("map_settings"))) {
+                    Toggle(languageManager.localize("show_traffic"), isOn: $settings.showTraffic)
+                    Toggle(languageManager.localize("show_pois"), isOn: $settings.showPOIs)
                 }
                 
                 // Erscheinungsbild
-                Section(header: Text("Erscheinungsbild")) {
-                    Picker("Kartenstil", selection: $settings.mapStyle) {
+                Section(header: Text(languageManager.localize("appearance"))) {
+                    Picker(languageManager.localize("map_style"), selection: $settings.mapStyle) {
                         ForEach(AppSettings.MapStyle.allCases, id: \.rawValue) { style in
-                            Text(style.name).tag(style.rawValue)
+                            Text(languageManager.localize(style == .standard ? "standard" : "satellite")).tag(style.rawValue)
                         }
                     }
                     
-                    Toggle("Nachtmodus", isOn: $settings.nightMode)
+                    Toggle(languageManager.localize("night_mode"), isOn: $settings.nightMode)
                 }
                 
                 // Persönliche Einstellungen
-                Section(header: Text("Persönliche Einstellungen")) {
+                Section(header: Text(languageManager.localize("personal_settings"))) {
                     Button(action: {
                         showInterestsView = true
                     }) {
                         HStack {
-                            Text("Interessen")
+                            Text(languageManager.localize("interests"))
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .foregroundColor(.gray)
@@ -159,46 +160,50 @@ struct SettingsView: View {
                 }
                 
                 // Allgemeine Einstellungen
-                Section(header: Text("Allgemein")) {
+                Section(header: Text(languageManager.localize("general"))) {
                     Toggle(isOn: $settings.notificationsEnabled) {
-                        Label("Benachrichtigungen", systemImage: "bell.fill")
+                        Label(languageManager.localize("notifications"), systemImage: "bell.fill")
                     }
                     
                     Toggle(isOn: $settings.darkModeEnabled) {
-                        Label("Dark Mode", systemImage: "moon.fill")
+                        Label(languageManager.localize("dark_mode"), systemImage: "moon.fill")
                     }
                     
-                    Picker(selection: $settings.language, label: Label("Sprache", systemImage: "globe")) {
-                        ForEach(settings.languages, id: \.self) {
-                            Text($0)
+                    Picker(selection: $settings.language, label: Label(languageManager.localize("language"), systemImage: "globe")) {
+                        ForEach(LanguageManager.LanguageCode.allCases, id: \.rawValue) { language in
+                            Text(language.rawValue).tag(language.rawValue)
                         }
                     }
+                    .onChange(of: settings.language) { newLanguage in
+                        print("DEBUG: Language changed to \(newLanguage) in settings")
+                        languageManager.setLanguage(LanguageManager.LanguageCode.from(displayName: newLanguage))
+                    }
                     
-                    Toggle("Standort verwenden", isOn: $settings.useLocation)
-                    Toggle("Automatische Updates", isOn: $settings.autoUpdates)
+                    Toggle(languageManager.localize("use_location"), isOn: $settings.useLocation)
+                    Toggle(languageManager.localize("auto_updates"), isOn: $settings.autoUpdates)
                 }
                 
                 // App-Informationen
-                Section(header: Text("App-Informationen")) {
+                Section(header: Text(languageManager.localize("app_info"))) {
                     Button(action: {
                         showAbout = true
                     }) {
-                        Label("Über die App", systemImage: "info.circle")
+                        Label(languageManager.localize("about"), systemImage: "info.circle")
                     }
                     
                     Link(destination: URL(string: "https://citytailor.com/privacy")!) {
-                        Label("Datenschutzerklärung", systemImage: "lock.shield")
+                        Label(languageManager.localize("privacy_policy"), systemImage: "lock.shield")
                     }
                     
                     Link(destination: URL(string: "https://citytailor.com/terms")!) {
-                        Label("Nutzungsbedingungen", systemImage: "doc.text")
+                        Label(languageManager.localize("terms"), systemImage: "doc.text")
                     }
                 }
                 
                 // Version information
                 Section {
                     HStack {
-                        Text("Version")
+                        Text(languageManager.localize("version"))
                         Spacer()
                         Text("1.0.0")
                             .foregroundColor(.gray)
@@ -208,15 +213,16 @@ struct SettingsView: View {
                 Section {
                     Button(action: {
                         settings.resetToDefaults()
+                        languageManager.setLanguage(.en)
                     }) {
-                        Text("Auf Standardwerte zurücksetzen")
+                        Text(languageManager.localize("reset_defaults"))
                             .foregroundColor(.red)
                     }
                 }
             }
             .listStyle(InsetGroupedListStyle())
-            .navigationTitle("Einstellungen")
-            .navigationBarItems(trailing: Button("Fertig") {
+            .navigationTitle(languageManager.localize("settings"))
+            .navigationBarItems(trailing: Button(languageManager.localize("done")) {
                 presentationMode.wrappedValue.dismiss()
             })
             .sheet(isPresented: $showInterestsView) {
@@ -230,7 +236,7 @@ struct SettingsView: View {
                 Alert(
                     title: Text("CityTailor"),
                     message: Text("Eine KI-gestützte App zum Erstellen personalisierter Reisepläne.\n\n© 2025 CityTailor GmbH"),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text(languageManager.localize("done")))
                 )
             }
         }
@@ -241,4 +247,5 @@ struct SettingsView: View {
     SettingsView()
         .environmentObject(StoreManager())
         .environmentObject(AppSettings())
+        .environmentObject(LanguageManager())
 }

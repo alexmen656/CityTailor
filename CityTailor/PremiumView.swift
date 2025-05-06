@@ -3,6 +3,7 @@ import StoreKit
 
 struct PremiumView: View {
     @EnvironmentObject private var storeManager: StoreManager
+    @EnvironmentObject private var languageManager: LanguageManager
     @Environment(\.dismiss) private var dismiss
     @State private var selectedProduct: Product?
     @State private var isProcessing = false
@@ -20,11 +21,11 @@ struct PremiumView: View {
                             .foregroundColor(.yellow)
                             .padding(.bottom, 10)
                         
-                        Text("CityTailor Premium")
+                        Text(languageManager.localize("citytailor_premium"))
                             .font(.largeTitle)
                             .bold()
                         
-                        Text("Erleben Sie das Beste von CityTailor")
+                        Text(languageManager.localize("experience_best"))
                             .font(.title3)
                             .foregroundColor(.secondary)
                     }
@@ -33,7 +34,7 @@ struct PremiumView: View {
                     
                     // Features list
                     VStack(alignment: .leading, spacing: 15) {
-                        ForEach(PremiumFeatures.allFeatures, id: \.self) { feature in
+                        ForEach(localizedPremiumFeatures(), id: \.self) { feature in
                             HStack(spacing: 15) {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundColor(.green)
@@ -53,7 +54,7 @@ struct PremiumView: View {
                         ProgressView()
                             .padding()
                     } else if storeManager.products.isEmpty {
-                        Text("Keine Abonnements verfügbar")
+                        Text(languageManager.localize("no_subscriptions"))
                             .foregroundColor(.secondary)
                             .padding()
                     } else {
@@ -64,14 +65,14 @@ struct PremiumView: View {
                                     isSelected: selectedProduct?.id == product.id,
                                     onSelect: {
                                         selectedProduct = product
-                                    }
+                                    },
+                                    languageManager: languageManager
                                 )
                             }
                         }
                         .padding(.horizontal)
                     }
                     
-                    // Purchase button
                     Button {
                         purchaseSubscription()
                     } label: {
@@ -79,7 +80,7 @@ struct PremiumView: View {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
-                            Text("Abonnement kaufen")
+                            Text(languageManager.localize("buy_subscription"))
                                 .font(.headline)
                                 .foregroundColor(.white)
                         }
@@ -95,18 +96,18 @@ struct PremiumView: View {
                     Button {
                         restorePurchases()
                     } label: {
-                        Text("Käufe wiederherstellen")
+                        Text(languageManager.localize("restore_purchases"))
                             .foregroundColor(.blue)
                     }
                     .padding()
                     
                     // Terms and conditions
                     VStack(spacing: 8) {
-                        Text("Der Kauf wird über Ihren Apple Account abgewickelt.")
+                        Text(languageManager.localize("purchase_through_apple"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Text("Ihr Abonnement verlängert sich automatisch, bis es gekündigt wird.")
+                        Text(languageManager.localize("auto_renewal"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -115,18 +116,28 @@ struct PremiumView: View {
                     .padding(.bottom, 30)
                 }
             }
-            .navigationBarTitle("Premium", displayMode: .inline)
-            .navigationBarItems(trailing: Button("Schließen") {
+            .navigationBarTitle(languageManager.localize("premium"), displayMode: .inline)
+            .navigationBarItems(trailing: Button(languageManager.localize("close")) {
                 dismiss()
             })
             .alert(isPresented: $showAlert) {
                 Alert(
-                    title: Text("Information"),
+                    title: Text(languageManager.localize("information")),
                     message: Text(alertMessage),
                     dismissButton: .default(Text("OK"))
                 )
             }
         }
+    }
+    
+    func localizedPremiumFeatures() -> [String] {
+        return [
+            languageManager.localize("unlimited_plans"),
+            languageManager.localize("custom_plans"),
+            languageManager.localize("enhanced_ai"),
+            languageManager.localize("offline_access"),
+            languageManager.localize("no_ads")
+        ]
     }
     
     func purchaseSubscription() {
@@ -139,7 +150,7 @@ struct PremiumView: View {
             await MainActor.run {
                 isProcessing = false
                 if storeManager.isPremium() {
-                    alertMessage = "Vielen Dank für den Kauf! Sie haben jetzt Zugang zu allen Premium-Funktionen."
+                    alertMessage = languageManager.localize("thank_you")
                     showAlert = true
                 } else if let error = storeManager.errorMessage {
                     alertMessage = error
@@ -157,13 +168,13 @@ struct PremiumView: View {
             await MainActor.run {
                 isProcessing = false
                 if storeManager.isPremium() {
-                    alertMessage = "Ihre Käufe wurden wiederhergestellt."
+                    alertMessage = languageManager.localize("purchases_restored")
                     showAlert = true
                 } else if let error = storeManager.errorMessage {
                     alertMessage = error
                     showAlert = true
                 } else {
-                    alertMessage = "Keine Käufe zum Wiederherstellen gefunden."
+                    alertMessage = languageManager.localize("no_purchases")
                     showAlert = true
                 }
             }
@@ -175,6 +186,7 @@ struct SubscriptionOptionView: View {
     let product: Product
     let isSelected: Bool
     let onSelect: () -> Void
+    let languageManager: LanguageManager
     
     var body: some View {
         Button(action: onSelect) {
@@ -219,18 +231,18 @@ struct SubscriptionOptionView: View {
     
     private func subscriptionDescription(for id: String) -> String? {
         if id.contains("monthly") {
-            return "Monatliches Premium-Abonnement"
+            return languageManager.localize("monthly_subscription")
         } else if id.contains("yearly") {
-            return "Jährliches Premium-Abonnement (Spare 20%)"
+            return languageManager.localize("yearly_subscription")
         }
         return nil
     }
     
     private func subscriptionPriceUnit(for id: String) -> String? {
         if id.contains("monthly") {
-            return "pro Monat"
+            return languageManager.localize("per_month")
         } else if id.contains("yearly") {
-            return "pro Jahr"
+            return languageManager.localize("per_year")
         }
         return nil
     }
@@ -239,4 +251,5 @@ struct SubscriptionOptionView: View {
 #Preview {
     PremiumView()
         .environmentObject(StoreManager())
+        .environmentObject(LanguageManager())
 }
