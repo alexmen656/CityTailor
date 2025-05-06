@@ -2,6 +2,9 @@ import SwiftUI
 
 struct DateSelectionView: View {
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var storeManager: StoreManager
+    
     let locationName: String
     var onTravelPlanReceived: ((TravelPlan) -> Void)? = nil
     
@@ -10,10 +13,13 @@ struct DateSelectionView: View {
     @State private var isLoading = false
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var alertTitle = "Backend-Benachrichtigung"
+    @State private var showPremiumOffer = false
     
     @State private var travelPlan: TravelPlan?
     @State private var showTravelPlan = false
     @State private var selectedDayNumber: Int = 1
+    @State private var showPremiumView = false
     
     var tripLengthInDays: Int {
         Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
@@ -46,7 +52,15 @@ struct DateSelectionView: View {
                 
                 Section {
                     Button(action: {
-                        sendDataToBackend()
+                        // Prüfe, ob der Nutzer noch einen Plan erstellen darf
+                        if !storeManager.isPremium() && !TravelPlanStore.shared.canSaveTravelPlan(isPremium: false, context: viewContext) {
+                            alertTitle = "Limit erreicht"
+                            alertMessage = "Sie haben das Maximum von \(TravelPlanStore.FREE_PLAN_LIMIT) Reiseplänen für die kostenlose Version erreicht. Upgrade auf Premium für unbegrenzte Reisepläne."
+                            showPremiumOffer = true
+                            showAlert = true
+                        } else {
+                            sendDataToBackend()
+                        }
                     }) {
                         if isLoading {
                             ProgressView()
@@ -60,22 +74,68 @@ struct DateSelectionView: View {
                     .buttonStyle(BorderlessButtonStyle())
                     .disabled(isLoading)
                 }
+                
+                // Separate Sektion für die Premium-Info
+                if !storeManager.isPremium() {
+                    let remaining = TravelPlanStore.shared.getRemainingFreePlans(context: viewContext)
+                    
+                    Section(header: Text("Kostenloses Konto")) {
+                        HStack {
+                            Image(systemName: "doc.text")
+                                .foregroundColor(.blue)
+                            Text("Verbleibende kostenlose Pläne")
+                            Spacer()
+                            
+                            Text("\(remaining) von \(TravelPlanStore.FREE_PLAN_LIMIT)")
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Button(action: {
+                            showPremiumView = true
+                        }) {
+                            HStack {
+                                Image(systemName: "crown.fill")
+                                    .foregroundColor(.yellow)
+                                Text("Upgrade auf Premium")
+                                    .foregroundColor(.blue)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.gray)
+                                    .font(.caption)
+                            }
+                        }
+                    }
+                }
             }
             .navigationTitle("Reiseplanung")
             .navigationBarItems(trailing: Button("Schließen") {
                 presentationMode.wrappedValue.dismiss()
             })
             .alert(isPresented: $showAlert) {
-                Alert(
-                    title: Text("Backend-Benachrichtigung"),
-                    message: Text(alertMessage),
-                    dismissButton: .default(Text("OK"))
-                )
+                if showPremiumOffer {
+                    return Alert(
+                        title: Text(alertTitle),
+                        message: Text(alertMessage),
+                        primaryButton: .default(Text("Upgrade auf Premium")) {
+                            showPremiumView = true
+                        },
+                        secondaryButton: .cancel(Text("Abbrechen"))
+                    )
+                } else {
+                    return Alert(
+                        title: Text(alertTitle),
+                        message: Text(alertMessage),
+                        dismissButton: .default(Text("OK"))
+                    )
+                }
             }
             .sheet(isPresented: $showTravelPlan) {
                 if let plan = travelPlan {
                     TravelPlanView(travelPlan: plan, selectedDay: $selectedDayNumber)
                 }
+            }
+            .sheet(isPresented: $showPremiumView) {
+                PremiumView()
             }
         }
     }

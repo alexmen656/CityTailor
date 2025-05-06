@@ -10,11 +10,73 @@ import SwiftUI
 struct PlansView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var storeManager: StoreManager
+    @EnvironmentObject private var languageManager: LanguageManager
     @State private var savedPlans: [SavedTravelPlanViewModel] = []
-
+    @State private var showPremiumView = false
+    @State private var remainingFreePlans = 0
+    
     var body: some View {
         NavigationView {
             List {
+                // Zeige Premium-Upgrade Information an, wenn der Benutzer nicht Premium ist und das Limit erreicht hat
+                if !storeManager.isPremium() && remainingFreePlans == 0 && !savedPlans.isEmpty {
+                    Section {
+                        VStack(alignment: .center, spacing: 10) {
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 36))
+                                .foregroundColor(.yellow)
+                            
+                            Text("Limit erreicht: Maximale Anzahl von Reiseplänen (3)")
+                                .font(.headline)
+                                .multilineTextAlignment(.center)
+                            
+                            Text("Upgrade auf Premium für unbegrenzte Reisepläne")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                            
+                            Button(action: {
+                                showPremiumView = true
+                            }) {
+                                Text("Upgrade auf Premium")
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 10)
+                                    .background(Color.blue)
+                                    .cornerRadius(8)
+                            }
+                            .padding(.top, 5)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                    }
+                }
+                // Zeige Anzahl verbleibender Pläne an, wenn der Benutzer nicht Premium ist
+                else if !storeManager.isPremium() && remainingFreePlans > 0 {
+                    Section {
+                        HStack {
+                            Text("Verbleibende kostenlose Reisepläne: \(remainingFreePlans)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            
+                            Spacer()
+                            
+                            Button(action: {
+                                showPremiumView = true
+                            }) {
+                                Text("Unbegrenzt")
+                                    .font(.caption)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.yellow)
+                                    .foregroundColor(.black)
+                                    .cornerRadius(8)
+                            }
+                        }
+                    }
+                }
+                
                 if savedPlans.isEmpty {
                     VStack(spacing: 20) {
                         Image(systemName: "map")
@@ -109,11 +171,17 @@ struct PlansView: View {
             .onAppear {
                 loadSavedPlans()
             }
+            .sheet(isPresented: $showPremiumView) {
+                PremiumView()
+            }
         }
     }
     
     private func loadSavedPlans() {
         self.savedPlans = TravelPlanStore.shared.getTravelPlans(context: viewContext)
+        
+        // Aktualisiere die Anzahl der verbleibenden kostenlosen Pläne
+        self.remainingFreePlans = TravelPlanStore.shared.getRemainingFreePlans(context: viewContext)
     }
     
     private func deletePlans(at offsets: IndexSet) {

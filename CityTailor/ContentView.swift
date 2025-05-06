@@ -14,6 +14,7 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var languageManager: LanguageManager
+    @EnvironmentObject private var storeManager: StoreManager
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954), // Berlin as default
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
@@ -168,8 +169,12 @@ struct ContentView: View {
                     locationName: selectedLocation,
                     onTravelPlanReceived: { plan in
                         self.travelPlan = plan
-                        TravelPlanStore.shared.saveTravelPlan(plan, context: viewContext)
-                        self.showSaveFeedback = true
+                        
+                        // Überprüfe, ob der Benutzer den Plan speichern darf (nur für neue Pläne)
+                        if TravelPlanStore.shared.canSaveTravelPlan(isPremium: storeManager.isPremium(), context: viewContext) {
+                            TravelPlanStore.shared.saveTravelPlan(plan, context: viewContext)
+                            self.showSaveFeedback = true
+                        }
                     }
                 )
             }

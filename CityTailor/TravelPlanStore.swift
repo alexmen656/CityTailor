@@ -5,6 +5,7 @@ import SwiftUI
 class TravelPlanStore {
     
     static let shared = TravelPlanStore()
+    static let FREE_PLAN_LIMIT = 3
     
     func saveTravelPlan(_ travelPlan: TravelPlan, context: NSManagedObjectContext) {
         // Create a new SavedTravelPlan entity
@@ -101,6 +102,41 @@ class TravelPlanStore {
         } catch {
             print("Failed to delete travel plan: \(error.localizedDescription)")
         }
+    }
+    
+    func canSaveTravelPlan(isPremium: Bool, context: NSManagedObjectContext) -> Bool {
+        // Premium-Nutzer können unbegrenzt viele Pläne speichern
+        if isPremium {
+            return true
+        }
+        
+        // Anzahl der vorhandenen Pläne prüfen
+        let fetchRequest: NSFetchRequest<SavedTravelPlan> = SavedTravelPlan.fetchRequest()
+        
+        do {
+            let count = try context.count(for: fetchRequest)
+            return count < TravelPlanStore.FREE_PLAN_LIMIT
+        } catch {
+            print("Error counting travel plans: \(error.localizedDescription)")
+            return false
+        }
+    }
+    
+    func getNumberOfSavedPlans(context: NSManagedObjectContext) -> Int {
+        let fetchRequest: NSFetchRequest<SavedTravelPlan> = SavedTravelPlan.fetchRequest()
+        
+        do {
+            let count = try context.count(for: fetchRequest)
+            return count
+        } catch {
+            print("Error counting travel plans: \(error.localizedDescription)")
+            return 0
+        }
+    }
+    
+    func getRemainingFreePlans(context: NSManagedObjectContext) -> Int {
+        let currentCount = getNumberOfSavedPlans(context: context)
+        return max(0, TravelPlanStore.FREE_PLAN_LIMIT - currentCount)
     }
 }
 
