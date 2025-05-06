@@ -40,19 +40,47 @@ class TravelPlanStore {
                       let startDate = savedPlan.startDate,
                       let endDate = savedPlan.endDate,
                       let id = savedPlan.id,
-                      let planData = savedPlan.planData,
-                      let plan = try? JSONDecoder().decode(TravelPlan.self, from: planData) else {
+                      let planData = savedPlan.planData else {
+                    print("DEBUG: Missing required fields in saved plan")
                     return nil
                 }
                 
-                return SavedTravelPlanViewModel(
-                    id: id,
-                    location: location,
-                    startDate: startDate,
-                    endDate: endDate,
-                    creationDate: savedPlan.creationDate ?? Date(),
-                    plan: plan
-                )
+                // Debug-Ausgabe für die planData
+                print("DEBUG: Plan data size: \(planData.count) bytes")
+                
+                do {
+                    let plan = try JSONDecoder().decode(TravelPlan.self, from: planData)
+                    print("DEBUG: Successfully decoded travel plan for \(location)")
+                    print("DEBUG: Plan has \(plan.dailyPlans?.count ?? 0) daily plans")
+                    return SavedTravelPlanViewModel(
+                        id: id,
+                        location: location,
+                        startDate: startDate,
+                        endDate: endDate,
+                        creationDate: savedPlan.creationDate ?? Date(),
+                        plan: plan,
+                        image: nil,
+                        imageInfo: plan.image
+                    )
+                } catch {
+                    print("DEBUG: Failed to decode travel plan: \(error.localizedDescription)")
+                    // Versuche, den Fehler detaillierter zu analysieren
+                    if let decodingError = error as? DecodingError {
+                        switch decodingError {
+                        case .dataCorrupted(let context):
+                            print("DEBUG: Data corrupted: \(context.debugDescription)")
+                        case .keyNotFound(let key, let context):
+                            print("DEBUG: Key '\(key.stringValue)' not found: \(context.debugDescription)")
+                        case .typeMismatch(let type, let context):
+                            print("DEBUG: Type mismatch for type \(type): \(context.debugDescription)")
+                        case .valueNotFound(let type, let context):
+                            print("DEBUG: Value of type \(type) not found: \(context.debugDescription)")
+                        @unknown default:
+                            print("DEBUG: Unknown decoding error")
+                        }
+                    }
+                    return nil
+                }
             }
         } catch {
             print("Failed to fetch travel plans: \(error.localizedDescription)")
@@ -84,4 +112,6 @@ struct SavedTravelPlanViewModel: Identifiable {
     let endDate: String
     let creationDate: Date
     let plan: TravelPlan
+    var image: UIImage?
+    var imageInfo: ImageInfo?
 }

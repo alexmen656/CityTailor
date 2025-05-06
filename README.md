@@ -62,6 +62,7 @@ This is a solo Hack Club project, but contributions, feedback, and ideas are wel
 | push messages                         | 🔜 Planned   |
 | make all settings functional          | 🔜 Planned   |
 | buy tickets through app               | 🔜 Planned   |
+| add weather info to ai prompt         | 🔜 Planned   |
 
 ## 📄 License
 

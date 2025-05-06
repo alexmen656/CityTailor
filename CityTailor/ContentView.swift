@@ -34,7 +34,7 @@ struct ContentView: View {
     @State private var selectedActivity: Activity? = nil
     @State private var selectedDayNumber: Int = 1
     @State private var showSaveFeedback = false
-    @State private var selectedTab = 1
+    @StateObject private var tabSelection = TabSelection()
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
@@ -45,12 +45,12 @@ struct ContentView: View {
         ZStack(alignment: .bottom) {
             // Content basierend auf ausgewähltem Tab
             Group {
-                if selectedTab == 0 {
+                if tabSelection.selectedTab == 0 {
                     PlansView()
-                        .padding(.bottom, 70) // Padding für die TabBar-Höhe
-                } else if selectedTab == 1 {
+                        .padding(.bottom, 70)
+                } else if tabSelection.selectedTab == 1 {
                     mainView
-                } else if selectedTab == 2 {
+                } else if tabSelection.selectedTab == 2 {
                     SettingsView(isModal: false)
                         .padding(.bottom, 70) // Padding für die TabBar-Höhe
                 }
@@ -59,7 +59,7 @@ struct ContentView: View {
             // Benutzerdefinierte TabBar
             VStack {
                 Spacer()
-                CustomTabBar(selectedTab: $selectedTab)
+                CustomTabBar(selectedTab: $tabSelection.selectedTab)
                     .edgesIgnoringSafeArea(.bottom)
             }
             .ignoresSafeArea(.keyboard)
@@ -133,7 +133,7 @@ struct ContentView: View {
                             showDateSelectionView = true
                         }
                     )
-                    .padding(.bottom, 70) // Padding für die TabBar-Höhe
+                    .padding(.bottom, 70)
                 }
             }
         }

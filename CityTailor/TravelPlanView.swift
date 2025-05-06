@@ -6,6 +6,16 @@ struct TravelPlanView: View {
     @Binding var selectedDay: Int
     var onActivitySelected: ((Activity) -> Void)? = nil
     
+    // Führe eine Initialisierung am Anfang durch
+    init(travelPlan: TravelPlan, selectedDay: Binding<Int>, onActivitySelected: ((Activity) -> Void)? = nil) {
+        self.travelPlan = travelPlan
+        self._selectedDay = selectedDay
+        self.onActivitySelected = onActivitySelected
+        
+        print("DEBUG: TravelPlanView init for \(travelPlan.location)")
+        print("DEBUG: Initial selected day: \(selectedDay.wrappedValue)")
+    }
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -20,8 +30,20 @@ struct TravelPlanView: View {
                         .foregroundColor(.gray)
                 }
                 .padding(.bottom)
+                .onAppear {
+                    // Debug-Ausgaben
+                    print("DEBUG: TravelPlanView appeared for \(travelPlan.location)")
+                    print("DEBUG: Selected day: \(selectedDay)")
+                    if let dailyPlans = travelPlan.dailyPlans {
+                        print("DEBUG: Available days: \(dailyPlans.map { $0.dayNumber })")
+                        print("DEBUG: First day activities count: \(dailyPlans.first?.activities.count ?? 0)")
+                    } else {
+                        print("DEBUG: No daily plans available")
+                    }
+                }
                 
                 if let dailyPlans = travelPlan.dailyPlans, !dailyPlans.isEmpty {
+                    // Die State-Validierung wird in onAppear verschoben
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 15) {
                             ForEach(dailyPlans) { day in
@@ -30,6 +52,7 @@ struct TravelPlanView: View {
                                     date: formatDateShort(day.date),
                                     isSelected: selectedDay == day.dayNumber
                                 ) {
+                                    print("DEBUG: Day \(day.dayNumber) selected")
                                     selectedDay = day.dayNumber
                                 }
                             }
@@ -37,6 +60,17 @@ struct TravelPlanView: View {
                         .padding()
                     }
                     .background(Color(.systemGray6))
+                    .onAppear {
+                        // Validiere den ausgewählten Tag erst nach der Darstellung
+                        let validDayNumbers = dailyPlans.map { $0.dayNumber }
+                        if !validDayNumbers.contains(selectedDay) {
+                            // Wähle den ersten Tag, falls der aktuelle nicht gültig ist
+                            if let firstDay = dailyPlans.first {
+                                print("DEBUG: Selected day \(selectedDay) not valid, switching to day \(firstDay.dayNumber)")
+                                selectedDay = firstDay.dayNumber
+                            }
+                        }
+                    }
                     
                     if let dayPlan = dailyPlans.first(where: { $0.dayNumber == selectedDay }) {
                         List {
@@ -123,6 +157,10 @@ struct TravelPlanView: View {
                     } else {
                         Spacer()
                         Text("Keine Aktivitäten für diesen Tag gefunden.")
+                            .onAppear {
+                                print("DEBUG: No day plan found for day \(selectedDay)")
+                                print("DEBUG: Available day numbers: \(dailyPlans.map { $0.dayNumber })")
+                            }
                         Spacer()
                     }
                 } else if let info = travelPlan.info {
@@ -135,6 +173,9 @@ struct TravelPlanView: View {
                 } else {
                     Spacer()
                     Text("Keine Reiseplan-Daten verfügbar.")
+                        .onAppear {
+                            print("DEBUG: No travel plan data available at all")
+                        }
                     Spacer()
                 }
             }

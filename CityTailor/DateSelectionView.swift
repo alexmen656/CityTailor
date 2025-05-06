@@ -52,7 +52,7 @@ struct DateSelectionView: View {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle())
                         } else {
-                            Text("An Backend senden")
+                            Text("Generate Travel Plan")
                                 .frame(maxWidth: .infinity)
                                 .bold()
                         }
@@ -103,7 +103,7 @@ struct DateSelectionView: View {
             "interests": interestsData  // Füge Interessen zum Request hinzu
         ]
         
-        guard let url = URL(string: "https://city-tailor-backend-l4kap9rxs-alexmen656s-projects.vercel.app/api/trips") else {
+        guard let url = URL(string: "https://city-tailor-backend-7yq4wmveb-alexmen656s-projects.vercel.app/api/trips") else {
             self.alertMessage = "Ungültige URL"
             self.showAlert = true
             self.isLoading = false

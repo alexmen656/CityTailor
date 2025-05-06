@@ -14,6 +14,40 @@ struct TravelPlan: Codable, Identifiable {
     let dailyPlans: [DailyPlan]?
     let recommendations: Recommendations?
     let info: String?
+    let image: ImageInfo?
+    
+    // CodingKeys für die explizite Kontrolle der Decodierung
+    enum CodingKeys: String, CodingKey {
+        case location
+        case period
+        case dailyPlans
+        case recommendations
+        case info
+        case image
+    }
+    
+    // Benutzerdefinierter Initialisierer für die Decodierung
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        location = try container.decode(String.self, forKey: .location)
+        period = try container.decode(TravelPeriod.self, forKey: .period)
+        
+        // Optionale Felder
+        dailyPlans = try container.decodeIfPresent([DailyPlan].self, forKey: .dailyPlans)
+        recommendations = try container.decodeIfPresent(Recommendations.self, forKey: .recommendations)
+        info = try container.decodeIfPresent(String.self, forKey: .info)
+        
+        // ImageInfo ist neu, daher versuchen wir es zu dekodieren, aber es ist ok wenn es fehlt
+        image = try? container.decodeIfPresent(ImageInfo.self, forKey: .image)
+    }
+}
+
+struct ImageInfo: Codable {
+    let url: String
+    let description: String
+    let photographer: String
+    let photographerLink: String
 }
 
 struct TravelPeriod: Codable {

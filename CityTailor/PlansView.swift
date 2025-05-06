@@ -7,13 +7,9 @@
 
 import SwiftUI
 
-// Reisepläne Ansicht
 struct PlansView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var savedPlans: [SavedTravelPlanViewModel] = []
-    @State private var showTravelPlanDetail = false
-    @State private var selectedTravelPlan: TravelPlan? = nil
-    @State private var selectedDayNumber = 1
 
     var body: some View {
         NavigationView {
@@ -37,35 +33,72 @@ struct PlansView: View {
                     .listRowBackground(Color.clear)
                 } else {
                     ForEach(savedPlans) { plan in
-                        Button(action: {
-                            selectedTravelPlan = plan.plan
-                            showTravelPlanDetail = true
-                        }) {
-                            VStack(alignment: .leading, spacing: 5) {
-                                HStack {
-                                    Text(plan.location)
-                                        .font(.headline)
-                                    
-                                    Spacer()
-                                    
-                                    Text(formatDate(plan.creationDate))
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                        NavigationLink(destination: PlanDetailLoader(planID: plan.id, context: viewContext)) {
+                            HStack(spacing: 9) {
+                                if let imageInfo = plan.imageInfo, let imageUrl = URL(string: imageInfo.url) {
+                                    AsyncImage(url: imageUrl) { phase in
+                                        switch phase {
+                                        case .empty:
+                                            ProgressView()
+                                                .frame(width: 70, height: 70)
+                                                .background(Color(.systemGray5))
+                                                .cornerRadius(6)
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                                .frame(width: 70, height: 70)
+                                                .cornerRadius(6)
+                                        case .failure:
+                                            Image(systemName: "photo")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 30, height: 30)
+                                                .frame(width: 70, height: 70)
+                                                .background(Color(.systemGray5))
+                                                .cornerRadius(6)
+                                        @unknown default:
+                                            EmptyView()
+                                        }
+                                    }
+                                } else {
+                                    Image(systemName: "photo")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 30, height: 30)
+                                        .frame(width: 70, height: 70)
+                                        .background(Color(.systemGray5))
+                                        .cornerRadius(6)
                                 }
                                 
-                                HStack {
-                                    Text("\(plan.startDate) - \(plan.endDate)")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                VStack(alignment: .leading, spacing: 5) {
+                                    HStack {
+                                        Text(plan.location)
+                                            .font(.headline)
+                                        
+                                        Spacer()
+                                        
+                                        Text(formatDate(plan.creationDate))
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
                                     
-                                    Spacer()
+                                    HStack {
+                                        Text("\(formatDateString(plan.startDate)) - \(formatDateString(plan.endDate))")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Spacer()
+                                                                            }
                                     
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
+                                    if let imageInfo = plan.imageInfo {
+                                        Text("Foto: \(imageInfo.photographer)")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                             }
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 4)
                         }
                     }
                     .onDelete(perform: deletePlans)
@@ -76,21 +109,23 @@ struct PlansView: View {
                 loadSavedPlans()
             }
         }
-        .sheet(isPresented: $showTravelPlanDetail) {
-            if let plan = selectedTravelPlan {
-                TravelPlanView(
-                    travelPlan: plan,
-                    selectedDay: $selectedDayNumber
-                )
-            }
-        }
     }
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .none
+        formatter.dateFormat = "dd.MM.yyyy" 
         return formatter.string(from: date)
+    }
+    
+    private func formatDateString(_ dateString: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        
+        if let date = formatter.date(from: dateString) {
+            formatter.dateFormat = "dd.MM.yyyy"
+            return formatter.string(from: date)
+        }
+        return dateString
     }
     
     private func loadSavedPlans() {
@@ -104,7 +139,6 @@ struct PlansView: View {
                 TravelPlanStore.shared.deleteTravelPlan(withId: plan.id, context: viewContext)
             }
             
-            // Reload saved plans after deletion
             loadSavedPlans()
         }
     }

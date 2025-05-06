@@ -1,6 +1,10 @@
 import SwiftUI
 import UIKit
 
+class TabSelection: ObservableObject {
+    @Published var selectedTab: Int = 1
+}
+
 extension View {
     func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
         clipShape(RoundedCorner(radius: radius, corners: corners))
@@ -66,7 +70,11 @@ struct TabBarButton: View {
     let action: () -> Void
     
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            DispatchQueue.main.async {
+                self.action()
+            }
+        }) {
             VStack(spacing: 4) {
                 if hasBackground {
                     ZStack {
