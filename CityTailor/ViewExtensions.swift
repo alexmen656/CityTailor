@@ -38,7 +38,7 @@ struct CustomTabBar: View {
     
     var body: some View {
         HStack {
-            TabBarButton(iconName: "map.fill", title: languageManager.localize("plans"), 
+            TabBarButton(iconName: "doc.text.fill", title: languageManager.localize("plans"), 
                          isSelected: selectedTab == 0, hasBackground: false) {
                 selectedTab = 0
             }
@@ -101,12 +101,10 @@ struct TabBarButton: View {
     }
 }
 
-// DateFormatter-Klasse zur Verwaltung der Datumsformatierung nach Benutzereinstellungen
 class DateFormatterUtils {
     static func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         
-        // Verwende die Benutzereinstellungen aus UserDefaults
         let dateFormat = UserDefaults.standard.integer(forKey: "dateFormat")
         
         switch dateFormat {
@@ -128,19 +126,16 @@ class DateFormatterUtils {
     }
     
     static func formatDateString(_ dateString: String) -> String {
-        // Konvertiere den String in ein Date-Objekt (ISO-Format wird angenommen)
         let inputFormatter = DateFormatter()
         inputFormatter.dateFormat = "yyyy-MM-dd"
         
         guard let date = inputFormatter.date(from: dateString) else {
-            return dateString // Bei Fehler: Originalstring zurückgeben
+            return dateString
         }
         
-        // Verwende die formatDate-Funktion für die richtige Formatierung
         return formatDate(date)
     }
     
-    // Formatiert ein Datum im Kurzformat für die Tag-Buttons (dd.MM.)
     static func formatDateShort(_ dateString: String) -> String {
         let inputFormatter = DateFormatter()
         inputFormatter.dateFormat = "yyyy-MM-dd"

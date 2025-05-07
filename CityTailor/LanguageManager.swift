@@ -212,7 +212,10 @@ class LanguageManager: ObservableObject {
                 "welcome_to_citytailor": "Willkommen bei CityTailor",
                 "personalize_travel_plans": "Personalisieren Sie Ihre Reisepläne, indem Sie uns mitteilen, woran Sie interessiert sind",
                 "set_interests": "Interessen festlegen",
-                "skip": "Überspringen"
+                "skip": "Überspringen",
+                
+                // Premium Feature
+                "support_future_development": "Unterstütze zukünftige Entwicklung"
             ]
         case .en:
             return [
@@ -326,7 +329,10 @@ class LanguageManager: ObservableObject {
                 "welcome_to_citytailor": "Welcome to CityTailor",
                 "personalize_travel_plans": "Personalize your travel plans by telling us what you're interested in",
                 "set_interests": "Set Interests",
-                "skip": "Skip"
+                "skip": "Skip",
+                
+                // Premium Feature
+                "support_future_development": "Support future development"
             ]
         case .fr:
             return [
@@ -440,7 +446,10 @@ class LanguageManager: ObservableObject {
                 "welcome_to_citytailor": "Bienvenue sur CityTailor",
                 "personalize_travel_plans": "Personnalisez vos plans de voyage en nous indiquant ce qui vous intéresse",
                 "set_interests": "Définir les Intérêts",
-                "skip": "Passer"
+                "skip": "Passer",
+                
+                // Premium Feature
+                "support_future_development": "Soutien au développement futur"
             ]
         case .es:
             return [
@@ -543,7 +552,7 @@ class LanguageManager: ObservableObject {
                 "history": "Historia",
                 "architecture": "Arquitectura",
                 "gastronomy": "Gastronomía",
-                "shopping": "Compras",
+                "shopping": "Shopping",
                 "nightlife": "Vida Nocturna",
                 "culture": "Cultura",
                 "sightseeing": "Turismo",
@@ -554,7 +563,10 @@ class LanguageManager: ObservableObject {
                 "welcome_to_citytailor": "Bienvenido a CityTailor",
                 "personalize_travel_plans": "Personalice sus planes de viaje diciéndonos qué le interesa",
                 "set_interests": "Establecer Intereses",
-                "skip": "Omitir"
+                "skip": "Omitir",
+                
+                // Premium Feature
+                "support_future_development": "Apoyo al desarrollo futuro"
             ]
         case .it:
             return [
@@ -668,7 +680,10 @@ class LanguageManager: ObservableObject {
                 "welcome_to_citytailor": "Benvenuto su CityTailor",
                 "personalize_travel_plans": "Personalizza i tuoi piani di viaggio indicandoci ciò che ti interessa",
                 "set_interests": "Imposta Interessi",
-                "skip": "Salta"
+                "skip": "Salta",
+                
+                // Premium Feature
+                "support_future_development": "Supporto allo sviluppo futuro"
             ]
         }
     }

@@ -126,11 +126,12 @@ struct DayButton: View {
     let date: String
     let isSelected: Bool
     let action: () -> Void
+    @EnvironmentObject private var languageManager: LanguageManager
     
     var body: some View {
         Button(action: action) {
             VStack(spacing: 2) {
-                Text("Tag \(dayNumber)")
+                Text("\(languageManager.localize("day")) \(dayNumber)")
                     .font(.caption)
                     .fontWeight(isSelected ? .bold : .medium)
                     .foregroundColor(isSelected ? .white : .primary)

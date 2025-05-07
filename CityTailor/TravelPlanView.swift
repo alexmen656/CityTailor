@@ -4,6 +4,8 @@ struct TravelPlanView: View {
     let travelPlan: TravelPlan
     @Environment(\.presentationMode) var presentationMode
     @Binding var selectedDay: Int
+    @EnvironmentObject private var languageManager: LanguageManager
+    @EnvironmentObject private var settings: AppSettings
     var onActivitySelected: ((Activity) -> Void)? = nil
     
     // Führe eine Initialisierung am Anfang durch
@@ -25,7 +27,7 @@ struct TravelPlanView: View {
                         .bold()
                         .padding(.top)
                     
-                    Text("\(travelPlan.period.startDate) bis \(travelPlan.period.endDate)")
+                    Text("\(formatDateString(travelPlan.period.startDate)) \(languageManager.localize("to")) \(formatDateString(travelPlan.period.endDate))")
                         .font(.subheadline)
                         .foregroundColor(.gray)
                 }
@@ -88,7 +90,7 @@ struct TravelPlanView: View {
                                             
                                             Spacer()
                                             
-                                            Text(activity.category)
+                                            Text(translateCategory(activity.category))
                                                 .font(.caption)
                                                 .padding(5)
                                                 .background(categoryColor(for: activity.category))
@@ -127,9 +129,9 @@ struct TravelPlanView: View {
                             }
                             
                             if let recommendations = travelPlan.recommendations {
-                                Section(header: Text("Empfehlungen für diesen Tag")) {
+                                Section(header: Text(languageManager.localize("recommendations"))) {
                                     if !recommendations.food.isEmpty {
-                                        DisclosureGroup("Essen & Trinken") {
+                                        DisclosureGroup(languageManager.localize("food_drinks")) {
                                             ForEach(recommendations.food, id: \.self) { food in
                                                 Label(food, systemImage: "fork.knife")
                                             }
@@ -137,7 +139,7 @@ struct TravelPlanView: View {
                                     }
                                     
                                     if !recommendations.transport.isEmpty {
-                                        DisclosureGroup("Transport") {
+                                        DisclosureGroup(languageManager.localize("transport")) {
                                             ForEach(recommendations.transport, id: \.self) { tip in
                                                 Label(tip, systemImage: "tram.fill")
                                             }
@@ -145,7 +147,7 @@ struct TravelPlanView: View {
                                     }
                                     
                                     if !recommendations.tips.isEmpty {
-                                        DisclosureGroup("Nützliche Tipps") {
+                                        DisclosureGroup(languageManager.localize("useful_tips")) {
                                             ForEach(recommendations.tips, id: \.self) { tip in
                                                 Label(tip, systemImage: "lightbulb.fill")
                                             }
@@ -156,7 +158,7 @@ struct TravelPlanView: View {
                         }
                     } else {
                         Spacer()
-                        Text("Keine Aktivitäten für diesen Tag gefunden.")
+                        Text(languageManager.localize("no_activities_found"))
                             .onAppear {
                                 print("DEBUG: No day plan found for day \(selectedDay)")
                                 print("DEBUG: Available day numbers: \(dailyPlans.map { $0.dayNumber })")
@@ -172,27 +174,87 @@ struct TravelPlanView: View {
                     Spacer()
                 } else {
                     Spacer()
-                    Text("Keine Reiseplan-Daten verfügbar.")
+                    Text(languageManager.localize("no_plan_data"))
                         .onAppear {
                             print("DEBUG: No travel plan data available at all")
                         }
                     Spacer()
                 }
             }
-            .navigationBarItems(trailing: Button("Fertig") {
+            .navigationBarItems(trailing: Button(languageManager.localize("done")) {
                 presentationMode.wrappedValue.dismiss()
             })
         }
     }
     
     func formatDateShort(_ dateString: String) -> String {
-        return DateFormatterUtils.formatDateShort(dateString)
+        // Verwende benutzerdefinierte Formatierung für kurze Datumsanzeige in Tabs
+        let inputFormatter = DateFormatter()
+        inputFormatter.dateFormat = "yyyy-MM-dd"
+        
+        guard let date = inputFormatter.date(from: dateString) else {
+            return dateString
+        }
+        
+        let outputFormatter = DateFormatter()
+        outputFormatter.dateFormat = "dd.MM."
+        return outputFormatter.string(from: date)
+    }
+    
+    func formatDateString(_ dateString: String) -> String {
+        // Verwende die Datumsformateinstellung des Benutzers
+        let inputFormatter = DateFormatter()
+        inputFormatter.dateFormat = "yyyy-MM-dd"
+        
+        guard let date = inputFormatter.date(from: dateString) else {
+            return dateString
+        }
+        
+        let outputFormatter = DateFormatter()
+        
+        let dateFormat = AppSettings.DateFormat(rawValue: settings.dateFormat) ?? .system
+        switch dateFormat {
+        case .system:
+            outputFormatter.dateStyle = .medium
+            outputFormatter.timeStyle = .none
+        case .european:
+            outputFormatter.dateFormat = "dd.MM.yyyy"
+        case .american:
+            outputFormatter.dateFormat = "MM/dd/yyyy"
+        case .iso:
+            outputFormatter.dateFormat = "yyyy-MM-dd"
+        }
+        
+        return outputFormatter.string(from: date)
     }
     
     func parseDate(_ dateString: String) -> Date? {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.date(from: dateString)
+    }
+    
+    // Funktion zum Übersetzen der Kategorienamen
+    func translateCategory(_ category: String) -> String {
+        // Kategorienamen sind standardmäßig auf Deutsch vom Backend
+        // Wir müssen sie hier in den entsprechenden Übersetzungsschlüssel umwandeln
+        let lowercasedCategory = category.lowercased()
+        let key = switch lowercasedCategory {
+            case "kunst": "art"
+            case "geschichte": "history"
+            case "architektur": "architecture"
+            case "gastronomie": "gastronomy"
+            case "shopping": "shopping"
+            case "nachtleben": "nightlife"
+            case "kultur": "culture"
+            case "sightseeing": "sightseeing"
+            default: lowercasedCategory
+        }
+        
+        // Übersetzen und ersten Buchstaben großschreiben
+        let translated = languageManager.localize(key)
+        guard let firstChar = translated.first else { return translated }
+        return String(firstChar).uppercased() + translated.dropFirst()
     }
     
     func categoryColor(for category: String) -> Color {

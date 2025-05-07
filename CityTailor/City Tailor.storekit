@@ -21,6 +21,8 @@
     "_developerTeamID" : "AS5BHHK5AW",
     "_failTransactionsEnabled" : false,
     "_lastSynchronizedDate" : 768084851.34403396,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
     "_storeKitErrors" : [
       {
         "current" : null,
@@ -110,11 +112,14 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.citytailor.premium.monthly",
+          "productID" : "com.citytailor.premium.2.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Monthly Premium",
           "subscriptionGroupID" : "20001000",
-          "type" : "RecurringSubscription"
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
         },
         {
           "adHocOffers" : [
@@ -140,11 +145,14 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.citytailor.premium.yearly",
+          "productID" : "com.citytailor.premium.2.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Yearly Premium",
           "subscriptionGroupID" : "20001000",
-          "type" : "RecurringSubscription"
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
         }
       ]
     }

@@ -9,8 +9,8 @@ class StoreManager: NSObject, ObservableObject {
     
     // Product IDs for your in-app purchases
     let productIDs = [
-        "com.citytailor.premium.monthly",
-        "com.citytailor.premium.yearly"
+        "com.citytailor.premium.2.monthly",
+        "com.citytailor.premium.2.yearly"
     ]
     
     override init() {

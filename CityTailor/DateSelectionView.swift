@@ -30,8 +30,9 @@ struct DateSelectionView: View {
     @State private var animationTimer: Timer? = nil
     
     var tripLengthInDays: Int {
-        Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0
-    }
+        // Ein Tag zur Reisedauer hinzufügen
+        (Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0) + 1
+    } 
     
     var body: some View {
         NavigationView {
@@ -198,10 +199,11 @@ struct DateSelectionView: View {
             "startDate": dateFormatter.string(from: startDate),
             "endDate": dateFormatter.string(from: endDate),
             "durationInDays": tripLengthInDays,
-            "interests": interestsData  // Füge Interessen zum Request hinzu
+            "interests": interestsData,  // Füge Interessen zum Request hinzu
+            "language": languageManager.currentLanguage.code  // Füge die aktuelle Sprache hinzu
         ]
         
-        guard let url = URL(string: "https://city-tailor-backend-7yq4wmveb-alexmen656s-projects.vercel.app/api/trips") else {
+        guard let url = URL(string: "https://city-tailor-backend-c6ylmt1oo-alexmen656s-projects.vercel.app/api/trips") else {
             self.alertTitle = languageManager.localize("backend_notification")
             self.alertMessage = languageManager.localize("invalid_url")
             self.showAlert = true
@@ -212,6 +214,10 @@ struct DateSelectionView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Füge den Premium-Status als geheimen Header hinzu
+        let isPremium = storeManager.isPremium()
+        request.addValue(isPremium ? "true" : "false", forHTTPHeaderField: "X-Premium-Status")
         
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: tripData)

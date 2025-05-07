@@ -182,7 +182,7 @@ struct SettingsView: View {
                         }
                     }
                     
-                    Toggle(languageManager.localize("night_mode"), isOn: $settings.nightMode)
+                    /*Toggle(languageManager.localize("night_mode"), isOn: $settings.nightMode)*/
                 }
                 
                 // Persönliche Einstellungen
