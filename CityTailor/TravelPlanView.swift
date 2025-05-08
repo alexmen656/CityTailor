@@ -234,40 +234,57 @@ struct TravelPlanView: View {
         return formatter.date(from: dateString)
     }
     
-    // Funktion zum Übersetzen der Kategorienamen
+    // Funktion zur Formatierung der Kategorienamen (nur erster Buchstabe groß)
     func translateCategory(_ category: String) -> String {
-        // Kategorienamen sind standardmäßig auf Deutsch vom Backend
-        // Wir müssen sie hier in den entsprechenden Übersetzungsschlüssel umwandeln
-        let lowercasedCategory = category.lowercased()
-        let key = switch lowercasedCategory {
-            case "kunst": "art"
-            case "geschichte": "history"
-            case "architektur": "architecture"
-            case "gastronomie": "gastronomy"
-            case "shopping": "shopping"
-            case "nachtleben": "nightlife"
-            case "kultur": "culture"
-            case "sightseeing": "sightseeing"
-            default: lowercasedCategory
-        }
-        
-        // Übersetzen und ersten Buchstaben großschreiben
-        let translated = languageManager.localize(key)
-        guard let firstChar = translated.first else { return translated }
-        return String(firstChar).uppercased() + translated.dropFirst()
+        // Erster Buchstabe groß, Rest unverändert
+        guard let firstChar = category.first else { return category }
+        return String(firstChar).uppercased() + category.dropFirst()
     }
     
     func categoryColor(for category: String) -> Color {
-        switch category.lowercased() {
-        case "kunst": return Color.purple
-        case "geschichte": return Color.orange
-        case "architektur": return Color.blue
-        case "gastronomie": return Color.red
-        case "shopping": return Color.pink
-        case "nachtleben": return Color.indigo
-        case "kultur": return Color.teal
-        case "sightseeing": return Color.green
-        default: return Color.gray
+        let lowercasedCategory = category.lowercased()
+        
+        // Kunst/Art-Kategorien (Lila)
+        if ["kunst", "art", "arte"].contains(where: lowercasedCategory.contains) {
+            return Color.purple
         }
+        
+        // Geschichte/History-Kategorien (Orange)
+        if ["geschichte", "history", "histoire", "historia", "storia"].contains(where: lowercasedCategory.contains) {
+            return Color.orange
+        }
+        
+        // Architektur/Architecture-Kategorien (Blau)
+        if ["architektur", "architecture", "arquitectura", "architettura"].contains(where: lowercasedCategory.contains) {
+            return Color.blue
+        }
+        
+        // Gastronomie/Gastronomy-Kategorien (Rot)
+        if ["gastronomie", "gastronomy", "gastronomía", "gastronomia", "essen", "food", "cuisine"].contains(where: lowercasedCategory.contains) {
+            return Color.red
+        }
+        
+        // Shopping-Kategorien (Pink)
+        if ["shopping", "einkaufen", "compras", "achats"].contains(where: lowercasedCategory.contains) {
+            return Color.pink
+        }
+        
+        // Nachtleben/Nightlife-Kategorien (Indigo)
+        if ["nachtleben", "nightlife", "vida nocturna", "vie nocturne", "vita notturna"].contains(where: lowercasedCategory.contains) {
+            return Color.indigo
+        }
+        
+        // Kultur/Culture-Kategorien (Teal)
+        if ["kultur", "culture", "cultura"].contains(where: lowercasedCategory.contains) {
+            return Color.teal
+        }
+        
+        // Sightseeing-Kategorien (Grün)
+        if ["sightseeing", "besichtigung", "visites", "visitas", "visite"].contains(where: lowercasedCategory.contains) {
+            return Color.green
+        }
+        
+        // Standard für unbekannte Kategorien
+        return Color.gray
     }
 }

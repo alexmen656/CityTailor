@@ -203,7 +203,7 @@ struct DateSelectionView: View {
             "language": languageManager.currentLanguage.code  // Füge die aktuelle Sprache hinzu
         ]
         
-        guard let url = URL(string: "https://city-tailor-backend-c6ylmt1oo-alexmen656s-projects.vercel.app/api/trips") else {
+        guard let url = URL(string: "https://city-tailor-backend-fol4vs6xk-alexmen656s-projects.vercel.app/api/trips") else {
             self.alertTitle = languageManager.localize("backend_notification")
             self.alertMessage = languageManager.localize("invalid_url")
             self.showAlert = true
@@ -228,7 +228,8 @@ struct DateSelectionView: View {
                     DispatchQueue.main.async {
                         self.isLoading = false
                         self.alertTitle = languageManager.localize("backend_notification")
-                        self.alertMessage = error.localizedDescription
+                        // Zeige benutzerfreundliche Fehlermeldung an
+                        self.alertMessage = languageManager.localize("server_error_retry")
                         self.showAlert = true
                     }
                     return
@@ -238,7 +239,7 @@ struct DateSelectionView: View {
                     DispatchQueue.main.async {
                         self.isLoading = false
                         self.alertTitle = languageManager.localize("backend_notification")
-                        self.alertMessage = languageManager.localize("invalid_server_response")
+                        self.alertMessage = languageManager.localize("server_error_retry")
                         self.showAlert = true
                     }
                     return
@@ -277,7 +278,7 @@ struct DateSelectionView: View {
                     DispatchQueue.main.async {
                         self.isLoading = false
                         self.alertTitle = languageManager.localize("backend_notification")
-                        self.alertMessage = languageManager.localize("server_error").replacingOccurrences(of: "{0}", with: "\(httpResponse.statusCode)")
+                        self.alertMessage = languageManager.localize("server_error_retry")
                         self.showAlert = true
                     }
                 }

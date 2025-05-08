@@ -92,15 +92,14 @@ struct PremiumView: View {
                     .padding(.horizontal)
                     .disabled(selectedProduct == nil || isProcessing)
                     
-                    // Restore purchases button
-                    Button {
-                        restorePurchases()
-                    } label: {
-                        Text(languageManager.localize("restore_purchases"))
-                            .foregroundColor(.blue)
-                    }
-                    .padding()
-                    
+                    HStack(spacing: 15) {
+                            Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                                .font(.caption)
+                            
+                            Link("Privacy Policy", destination: URL(string: "https://alex.polan.sk/privacy-policy.html")!)
+                                .font(.caption)
+                        }
+                        .padding(.top, 8)
                     // Terms and conditions
                     VStack(spacing: 8) {
                         Text(languageManager.localize("purchase_through_apple"))
@@ -111,15 +110,21 @@ struct PremiumView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
+                        
                     }
                     .padding(.horizontal, 40)
                     .padding(.bottom, 30)
                 }
             }
             .navigationBarTitle(languageManager.localize("premium"), displayMode: .inline)
-            .navigationBarItems(trailing: Button(languageManager.localize("close")) {
-                dismiss()
-            })
+            .navigationBarItems(
+                leading: Button(languageManager.localize("restore")) {
+                    restorePurchases()
+                },
+                trailing: Button(languageManager.localize("close")) {
+                    dismiss()
+                }
+            )
             .alert(isPresented: $showAlert) {
                 Alert(
                     title: Text(languageManager.localize("information")),
