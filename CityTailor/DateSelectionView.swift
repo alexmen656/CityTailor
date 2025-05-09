@@ -1,5 +1,46 @@
 import SwiftUI
 
+struct TravelTypeSelector: View {
+    @EnvironmentObject private var languageManager: LanguageManager
+    @Binding var selectedTravelType: TravelType?
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(TravelType.allCases, id: \.self) { travelType in
+                    Button(action: {
+                        withAnimation {
+                            selectedTravelType = travelType
+                        }
+                    }) {
+                        VStack(spacing: 8) {
+                            Image(systemName: travelType.icon)
+                                .font(.system(size: 24))
+                                .foregroundColor(selectedTravelType == travelType ? .white : .blue)
+                                .frame(width: 48, height: 48)
+                                .background(
+                                    Circle()
+                                        .fill(selectedTravelType == travelType ? Color.blue : Color.blue.opacity(0.1))
+                                )
+                            
+                            Text(travelType.localizedName(languageManager: languageManager))
+                                .font(.caption)
+                                .foregroundColor(selectedTravelType == travelType ? .primary : .secondary)
+                                .multilineTextAlignment(.center)
+                                .frame(width: 70, height: 32)
+                                .lineLimit(2)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(height: 90)
+                }
+            }
+            .padding(.horizontal, 4)
+            .padding(.vertical, 8)
+        }
+    }
+}
+
 struct DateSelectionView: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var viewContext
@@ -29,8 +70,9 @@ struct DateSelectionView: View {
     @State private var generationStatusText = ""
     @State private var animationTimer: Timer? = nil
     
+    @State private var selectedTravelType: TravelType? = .solo
+    
     var tripLengthInDays: Int {
-        // Ein Tag zur Reisedauer hinzufügen
         (Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0) + 1
     } 
     
@@ -59,9 +101,12 @@ struct DateSelectionView: View {
                     }
                 }
                 
+                Section(header: Text(languageManager.localize("travel_type"))) {
+                    TravelTypeSelector(selectedTravelType: $selectedTravelType)
+                }
+                
                 Section {
                     Button(action: {
-                        // Prüfe, ob der Nutzer noch einen Plan erstellen darf
                         if !storeManager.isPremium() && !TravelPlanStore.shared.canSaveTravelPlan(isPremium: false, context: viewContext) {
                             alertTitle = languageManager.localize("limit_reached")
                             alertMessage = languageManager.localize("limit_reached_message").replacingOccurrences(of: "{0}", with: "\(TravelPlanStore.FREE_PLAN_LIMIT)")
@@ -93,7 +138,6 @@ struct DateSelectionView: View {
                                         }
                                     }
                                 } else {
-                                    // Standard-Ladeindikator, wenn die Generierung noch nicht begonnen hat
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle())
                                 }
@@ -108,7 +152,6 @@ struct DateSelectionView: View {
                     .disabled(isLoading)
                 }
                 
-                // Separate Sektion für die Premium-Info
                 if !storeManager.isPremium() {
                     let remaining = TravelPlanStore.shared.getRemainingFreePlans(context: viewContext)
                     
@@ -194,7 +237,7 @@ struct DateSelectionView: View {
             "rating": $0.rating
         ] }
         
-        let tripData: [String: Any] = [
+        var tripData: [String: Any] = [
             "location": locationName,
             "startDate": dateFormatter.string(from: startDate),
             "endDate": dateFormatter.string(from: endDate),
@@ -202,6 +245,11 @@ struct DateSelectionView: View {
             "interests": interestsData,  // Füge Interessen zum Request hinzu
             "language": languageManager.currentLanguage.code  // Füge die aktuelle Sprache hinzu
         ]
+        
+        // Füge den Reisetyp hinzu, wenn einer ausgewählt wurde
+        if let travelType = selectedTravelType {
+            tripData["travelType"] = travelType.rawValue
+        }
         
         guard let url = URL(string: "https://city-tailor-backend-fol4vs6xk-alexmen656s-projects.vercel.app/api/trips") else {
             self.alertTitle = languageManager.localize("backend_notification")

@@ -1,6 +1,28 @@
 import SwiftUI
 import CoreLocation
 
+enum TravelType: String, CaseIterable, Codable {
+    case solo = "travel_type_solo"
+    case couple = "travel_type_couple"
+    case family = "travel_type_family"
+    case friends = "travel_type_friends"
+    case business = "travel_type_business"
+    
+    func localizedName(languageManager: LanguageManager) -> String {
+        return languageManager.localize(self.rawValue)
+    }
+    
+    var icon: String {
+        switch self {
+        case .solo: return "person"
+        case .couple: return "heart"
+        case .family: return "person.3"
+        case .friends: return "person.2"
+        case .business: return "briefcase"
+        }
+    }
+}
+
 struct BackendResponse: Codable {
     let success: Bool
     let message: String
@@ -16,7 +38,6 @@ struct TravelPlan: Codable, Identifiable {
     let info: String?
     let image: ImageInfo?
     
-    // CodingKeys für die explizite Kontrolle der Decodierung
     enum CodingKeys: String, CodingKey {
         case location
         case period
@@ -26,19 +47,16 @@ struct TravelPlan: Codable, Identifiable {
         case image
     }
     
-    // Benutzerdefinierter Initialisierer für die Decodierung
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         location = try container.decode(String.self, forKey: .location)
         period = try container.decode(TravelPeriod.self, forKey: .period)
         
-        // Optionale Felder
         dailyPlans = try container.decodeIfPresent([DailyPlan].self, forKey: .dailyPlans)
         recommendations = try container.decodeIfPresent(Recommendations.self, forKey: .recommendations)
         info = try container.decodeIfPresent(String.self, forKey: .info)
         
-        // ImageInfo ist neu, daher versuchen wir es zu dekodieren, aber es ist ok wenn es fehlt
         image = try? container.decodeIfPresent(ImageInfo.self, forKey: .image)
     }
 }
@@ -105,7 +123,6 @@ struct Interest: Identifiable {
     var rating: Double
 }
 
-// Modell für Kartenannotationen
 struct MapAnnotation: Identifiable {
     var id = UUID()
     let title: String
@@ -140,7 +157,7 @@ struct DayButton: View {
                     .font(.caption2)
                     .foregroundColor(isSelected ? .white.opacity(0.9) : .secondary)
             }
-            .frame(width: 70) // Feste Breite für 4 Buttons pro Reihe
+            .frame(width: 70)
             .padding(.vertical, 5)
             .padding(.horizontal, 4)
             .background(
