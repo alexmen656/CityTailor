@@ -37,7 +37,7 @@ This app lets users:
 | Maps View (basic)         | ✅ Finished  |
 | Interest Selection UI     | ✅ Finished  |
 | Weather Integration       | 🔜 Planned   |
-| Itinerary Generation      | 🔜 Planned   |
+| Itinerary Generation      | ✅ Finished  |
 | Offline Storage (CoreData)| 🔜 Planned   |
 | GitHub Actions CI         | ❌ Not yet   |
 | App Store Submission      | ✅ Finished  |
