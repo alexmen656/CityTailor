@@ -155,6 +155,7 @@ struct DateSelectionView: View {
     @State private var selectedTravelType: TravelType? = .solo
     @State private var selectedTransportationType: TransportationType? = .walking
     @State private var selectedTravelMode: TravelMode? = .moderate
+    @State private var showAdvancedSettings: Bool = false
     
     var tripLengthInDays: Int {
         (Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0) + 1
@@ -189,52 +190,75 @@ struct DateSelectionView: View {
                     TravelTypeSelector(selectedTravelType: $selectedTravelType)
                 }
                 
-                Section(header: Text(languageManager.localize("transportation_type"))) {
-                    TransportationTypeSelector(selectedTransportationType: $selectedTransportationType)
-                }
-                
-                if storeManager.isPremium() {
-                    Section(header: Text(languageManager.localize("travel_mode"))) {
-                        TravelModeSelector(selectedTravelMode: $selectedTravelMode)
-                    }
-                } else {
-                    Section(header: Text(languageManager.localize("travel_mode"))) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Image(systemName: "crown.fill")
-                                    .foregroundColor(.yellow)
-                                    .font(.system(size: 20))
-                                Text(languageManager.localize("premium_feature"))
+                Section {
+                    DisclosureGroup(
+                        isExpanded: $showAdvancedSettings,
+                        content: {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text(languageManager.localize("transportation_type"))
                                     .font(.headline)
-                                    .foregroundColor(.primary)
-                            }
-                            
-                            Text(languageManager.localize("travel_mode_premium_description"))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            
-                            Button(action: {
-                                showPremiumView = true
-                            }) {
-                                Text(languageManager.localize("upgrade_to_premium"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
+                                    .padding(.top, 8)
+                                
+                                TransportationTypeSelector(selectedTransportationType: $selectedTransportationType)
+                                    .padding(.bottom, 8)
+                                
+                                if storeManager.isPremium() {
+                                    Text(languageManager.localize("travel_mode"))
+                                        .font(.headline)
+                                        .padding(.top, 8)
+                                    
+                                    TravelModeSelector(selectedTravelMode: $selectedTravelMode)
+                                        .padding(.bottom, 8)
+                                } else {
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        HStack {
+                                            Image(systemName: "crown.fill")
+                                                .foregroundColor(.yellow)
+                                                .font(.system(size: 20))
+                                            Text(languageManager.localize("premium_feature"))
+                                                .font(.headline)
+                                                .foregroundColor(.primary)
+                                        }
+                                        
+                                        Text(languageManager.localize("travel_mode_premium_description"))
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        
+                                        Button(action: {
+                                            showPremiumView = true
+                                        }) {
+                                            Text(languageManager.localize("upgrade_to_premium"))
+                                                .font(.system(size: 16, weight: .semibold))
+                                                .foregroundColor(.white)
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                                .background(
+                                                    LinearGradient(
+                                                        gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                                                        startPoint: .leading,
+                                                        endPoint: .trailing
+                                                    )
+                                                )
+                                                .cornerRadius(10)
+                                        }
+                                        .padding(.top, 5)
+                                    }
                                     .padding(.vertical, 10)
-                                    .background(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .cornerRadius(10)
+                                }
                             }
-                            .padding(.top, 5)
+                        },
+                        label: {
+                            HStack {
+                                Text(languageManager.localize("advanced_settings"))
+                                    .font(.headline)
+                                Spacer()
+                                Image(systemName: "gear")
+                                    .foregroundColor(.blue)
+                            }
                         }
-                        .padding(.vertical, 10)
-                    }
+                    )
+                    .animation(.easeInOut, value: showAdvancedSettings)
                 }
                 
                 Section {

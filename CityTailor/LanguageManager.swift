@@ -102,6 +102,7 @@ class LanguageManager: ObservableObject {
         switch language {
         case .de:
             return [
+                "advanced_settings": "Erweiterte Einstellungen",
                 "map": "Karte",
                 "plans": "Pläne",
                 "favorites": "Favoriten",
@@ -240,6 +241,7 @@ class LanguageManager: ObservableObject {
             ]
         case .en:
             return [
+                "advanced_settings": "Advanced Settings",
                 "map": "Map",
                 "plans": "Plans",
                 "favorites": "Favorites",
@@ -378,6 +380,7 @@ class LanguageManager: ObservableObject {
             ]
         case .fr:
             return [
+                "advanced_settings": "Paramètres Avancés",
                 "map": "Carte",
                 "plans": "Plans",
                 "favorites": "Favoris",
@@ -516,6 +519,7 @@ class LanguageManager: ObservableObject {
             ]
         case .es:
             return [
+                "advanced_settings": "Configuraciones Avanzadas",
                 "map": "Mapa",
                 "plans": "Planes",
                 "favorites": "Favoritos",
@@ -654,6 +658,7 @@ class LanguageManager: ObservableObject {
             ]
         case .it:
             return [
+                "advanced_settings": "Impostazioni Avanzate",
                 "map": "Mappa",
                 "plans": "Piani",
                 "favorites": "Preferiti",
