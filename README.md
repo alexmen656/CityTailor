@@ -34,13 +34,13 @@ This app lets users:
 
 | Feature                    | Status       |
 |---------------------------|--------------|
-| Maps View (basic)         | 🔜 Planned   |
-| Interest Selection UI     | 🔜 Planned   |
+| Maps View (basic)         | ✅ Finished  |
+| Interest Selection UI     | ✅ Finished  |
 | Weather Integration       | 🔜 Planned   |
 | Itinerary Generation      | 🔜 Planned   |
 | Offline Storage (CoreData)| 🔜 Planned   |
 | GitHub Actions CI         | ❌ Not yet   |
-| App Store Submission      | ❌ Not yet   |
+| App Store Submission      | ✅ Finished  |
 
 ## 🤝 Contributing
 
@@ -52,7 +52,7 @@ This is a solo Hack Club project, but contributions, feedback, and ideas are wel
 | Android APP                           | 🔜 Planned   |
 | WatchOS APP                           | 🔜 Planned   |
 | Optimize for iPad/Mac                 | 🔜 Planned   |
-| Add Favicon                           | 🔜 Planned   |
+| Add Favicon                           | ✅ Finished  |
 | Better AI model for premium users     | 🔜 Planned   |
 | Create App Store listing              | 🔜 Planned   |
 | Create website                        | 🔜 Planned   |
@@ -60,7 +60,7 @@ This is a solo Hack Club project, but contributions, feedback, and ideas are wel
 | widgets                               | 🔜 Planned   |
 | fix pins issue                        | 🔜 Planned   |
 | push messages                         | 🔜 Planned   |
-| make all settings functional          | 🔜 Planned   |
+| make all settings functional          | ✅ Finished  |
 | buy tickets through app               | 🔜 Planned   |
 | add weather info to ai prompt         | 🔜 Planned   |
 
