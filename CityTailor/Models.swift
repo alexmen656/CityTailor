@@ -1,6 +1,28 @@
 import SwiftUI
 import CoreLocation
 
+enum TransportationType: String, CaseIterable, Codable {
+    case walking = "transport_type_walking"
+    case publicTransport = "transport_type_public"
+    case bicycle = "transport_type_bicycle"
+    case car = "transport_type_car"
+    case mixed = "transport_type_mix"
+    
+    func localizedName(languageManager: LanguageManager) -> String {
+        return languageManager.localize(self.rawValue)
+    }
+    
+    var icon: String {
+        switch self {
+        case .walking: return "figure.walk"
+        case .publicTransport: return "bus"
+        case .bicycle: return "bicycle"
+        case .car: return "car"
+        case .mixed: return "arrow.triangle.swap"
+        }
+    }
+}
+
 enum TravelType: String, CaseIterable, Codable {
     case solo = "travel_type_solo"
     case couple = "travel_type_couple"

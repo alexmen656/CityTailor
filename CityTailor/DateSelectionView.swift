@@ -1,5 +1,46 @@
 import SwiftUI
 
+struct TransportationTypeSelector: View {
+    @EnvironmentObject private var languageManager: LanguageManager
+    @Binding var selectedTransportationType: TransportationType?
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(TransportationType.allCases, id: \.self) { transportationType in
+                    Button(action: {
+                        withAnimation {
+                            selectedTransportationType = transportationType
+                        }
+                    }) {
+                        VStack(spacing: 8) {
+                            Image(systemName: transportationType.icon)
+                                .font(.system(size: 24))
+                                .foregroundColor(selectedTransportationType == transportationType ? .white : .blue)
+                                .frame(width: 48, height: 48)
+                                .background(
+                                    Circle()
+                                        .fill(selectedTransportationType == transportationType ? Color.blue : Color.blue.opacity(0.1))
+                                )
+                            
+                            Text(transportationType.localizedName(languageManager: languageManager))
+                                .font(.caption)
+                                .foregroundColor(selectedTransportationType == transportationType ? .primary : .secondary)
+                                .multilineTextAlignment(.center)
+                                .frame(width: 70, height: 32)
+                                .lineLimit(2)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(height: 90)
+                }
+            }
+            .padding(.horizontal, 4)
+            .padding(.vertical, 8)
+        }
+    }
+}
+
 struct TravelTypeSelector: View {
     @EnvironmentObject private var languageManager: LanguageManager
     @Binding var selectedTravelType: TravelType?
@@ -71,6 +112,7 @@ struct DateSelectionView: View {
     @State private var animationTimer: Timer? = nil
     
     @State private var selectedTravelType: TravelType? = .solo
+    @State private var selectedTransportationType: TransportationType? = .walking
     
     var tripLengthInDays: Int {
         (Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0) + 1
@@ -105,6 +147,10 @@ struct DateSelectionView: View {
                     TravelTypeSelector(selectedTravelType: $selectedTravelType)
                 }
                 
+                Section(header: Text(languageManager.localize("transportation_type"))) {
+                    TransportationTypeSelector(selectedTransportationType: $selectedTransportationType)
+                }
+                
                 Section {
                     Button(action: {
                         if !storeManager.isPremium() && !TravelPlanStore.shared.canSaveTravelPlan(isPremium: false, context: viewContext) {
@@ -118,7 +164,6 @@ struct DateSelectionView: View {
                     }) {
                         if isLoading {
                             VStack(spacing: 10) {
-                                // Fortschrittsbalken und Status anzeigen, wenn die Generierung läuft
                                 if generationSteps > 0 {
                                     VStack(spacing: 6) {
                                         ProgressView(value: generationProgress, total: 1.0)
@@ -242,13 +287,16 @@ struct DateSelectionView: View {
             "startDate": dateFormatter.string(from: startDate),
             "endDate": dateFormatter.string(from: endDate),
             "durationInDays": tripLengthInDays,
-            "interests": interestsData,  // Füge Interessen zum Request hinzu
-            "language": languageManager.currentLanguage.code  // Füge die aktuelle Sprache hinzu
+            "interests": interestsData,
+            "language": languageManager.currentLanguage.code 
         ]
         
-        // Füge den Reisetyp hinzu, wenn einer ausgewählt wurde
         if let travelType = selectedTravelType {
             tripData["travelType"] = travelType.rawValue
+        }
+        
+        if let transportationType = selectedTransportationType {
+            tripData["transportationType"] = transportationType.rawValue
         }
         
         guard let url = URL(string: "https://city-tailor-backend-fol4vs6xk-alexmen656s-projects.vercel.app/api/trips") else {
@@ -263,7 +311,6 @@ struct DateSelectionView: View {
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // Füge den Premium-Status als geheimen Header hinzu
         let isPremium = storeManager.isPremium()
         request.addValue(isPremium ? "true" : "false", forHTTPHeaderField: "X-Premium-Status")
         
@@ -276,7 +323,6 @@ struct DateSelectionView: View {
                     DispatchQueue.main.async {
                         self.isLoading = false
                         self.alertTitle = languageManager.localize("backend_notification")
-                        // Zeige benutzerfreundliche Fehlermeldung an
                         self.alertMessage = languageManager.localize("server_error_retry")
                         self.showAlert = true
                     }
@@ -298,13 +344,10 @@ struct DateSelectionView: View {
                         let decoder = JSONDecoder()
                         let backendResponse = try decoder.decode(BackendResponse.self, from: data)
                         
-                        // Wir speichern die Antwort, aber verarbeiten sie erst,
-                        // wenn die animierte Generierung abgeschlossen ist
                         DispatchQueue.main.async {
                             if self.currentGenerationStep >= self.generationSteps {
                                 self.processResponse(backendResponse)
                             } else {
-                                // Wenn die Generierung noch läuft, warten wir bis zur Fertigstellung
                                 Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
                                     if self.currentGenerationStep >= self.generationSteps {
                                         timer.invalidate()
@@ -339,7 +382,6 @@ struct DateSelectionView: View {
         }
     }
     
-    // Hilfsfunktion zur Aktualisierung des Generierungsstatus-Texts
     private func updateGenerationStatusText() {
         if currentGenerationStep == 0 {
             generationStatusText = languageManager.localize("preparing_generation")
@@ -352,11 +394,9 @@ struct DateSelectionView: View {
         }
     }
     
-    // Hilfsfunction zur Simulation des Fortschritts
     private func simulateProgressForStep() {
         guard currentGenerationStep < generationSteps else { return }
         
-        // Status-Text basierend auf aktuellem Schritt aktualisieren
         updateGenerationStatusText()
         
         targetProgress = Float(currentGenerationStep) / Float(generationSteps)
@@ -385,12 +425,10 @@ struct DateSelectionView: View {
         }
     }
     
-    // Verarbeiten der Backend-Antwort
     private func processResponse(_ backendResponse: BackendResponse) {
         self.travelPlan = backendResponse.data
         self.isLoading = false
         
-        // Gib den Travel Plan an die ContentView zurück
         if let onTravelPlanReceived = self.onTravelPlanReceived {
             onTravelPlanReceived(backendResponse.data)
         }
