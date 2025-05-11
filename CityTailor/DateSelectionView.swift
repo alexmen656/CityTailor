@@ -190,7 +190,7 @@ struct DateSelectionView: View {
                     TravelTypeSelector(selectedTravelType: $selectedTravelType)
                 }
                 
-                Section {
+                Section(header: Text(languageManager.localize("advanced_settings"))) {
                     DisclosureGroup(
                         isExpanded: $showAdvancedSettings,
                         content: {
@@ -251,10 +251,10 @@ struct DateSelectionView: View {
                         label: {
                             HStack {
                                 Text(languageManager.localize("advanced_settings"))
-                                    .font(.headline)
-                                Spacer()
+                                    //.font(.headline)
+                                /*Spacer()
                                 Image(systemName: "gear")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.blue)*/
                             }
                         }
                     )

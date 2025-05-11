@@ -9,7 +9,8 @@ struct PlanDetailLoader: View {
     @State private var isLoading = true
     @State private var loadError: String? = nil
     @State private var selectedDay: Int = 1
-    
+    @EnvironmentObject private var languageManager: LanguageManager
+
     var body: some View {
         NavigationView {
             Group {
@@ -28,7 +29,7 @@ struct PlanDetailLoader: View {
                                 .bold()
                                 .padding(.top)
                             
-                            Text("\(DateFormatterUtils.formatDateString(plan.startDate)) bis \(DateFormatterUtils.formatDateString(plan.endDate))")
+                            Text("\(DateFormatterUtils.formatDateString(plan.startDate)) \(languageManager.localize("to")) \(DateFormatterUtils.formatDateString(plan.endDate))")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                         }

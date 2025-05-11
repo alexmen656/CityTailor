@@ -35,6 +35,7 @@ struct RoundedCorner: Shape {
 struct CustomTabBar: View {
     @Binding var selectedTab: Int
     @EnvironmentObject private var languageManager: LanguageManager
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         HStack {
@@ -56,8 +57,8 @@ struct CustomTabBar: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
         .padding(.bottom, 20)
-        .background(Color.white)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: -2)
+        .background(colorScheme == .dark ? Color(UIColor.systemGray6) : Color.white)
+        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.1), radius: 5, x: 0, y: -2)
         .frame(maxWidth: .infinity)
     }
 }
@@ -68,6 +69,7 @@ struct TabBarButton: View {
     let isSelected: Bool
     let hasBackground: Bool
     let action: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         Button(action: {
@@ -79,7 +81,7 @@ struct TabBarButton: View {
                 if hasBackground {
                     ZStack {
                         Circle()
-                            .fill(Color(.systemGray5))
+                            .fill(colorScheme == .dark ? Color(UIColor.systemGray5) : Color(UIColor.systemGray5))
                             .frame(width: 36, height: 36)
                         
                         Image(systemName: iconName)

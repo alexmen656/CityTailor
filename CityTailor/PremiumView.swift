@@ -140,6 +140,7 @@ struct PremiumView: View {
             languageManager.localize("unlimited_plans"),
             //languageManager.localize("custom_plans"),
             languageManager.localize("enhanced_ai"),
+            languageManager.localize("advanced_settings"),
             languageManager.localize("support_future_development")
             //languageManager.localize("offline_access"),
             //languageManager.localize("no_ads")
