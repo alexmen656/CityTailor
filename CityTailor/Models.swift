@@ -23,6 +23,24 @@ enum TransportationType: String, CaseIterable, Codable {
     }
 }
 
+enum TravelMode: String, CaseIterable, Codable {
+    case relaxing = "travel_mode_relaxing"
+    case moderate = "travel_mode_moderate"
+    case active = "travel_mode_active"
+    
+    func localizedName(languageManager: LanguageManager) -> String {
+        return languageManager.localize(self.rawValue)
+    }
+    
+    var icon: String {
+        switch self {
+        case .relaxing: return "leaf"
+        case .moderate: return "figure.walk"
+        case .active: return "figure.hiking"
+        }
+    }
+}
+
 enum TravelType: String, CaseIterable, Codable {
     case solo = "travel_type_solo"
     case couple = "travel_type_couple"

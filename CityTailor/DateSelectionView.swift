@@ -82,6 +82,47 @@ struct TravelTypeSelector: View {
     }
 }
 
+struct TravelModeSelector: View {
+    @EnvironmentObject private var languageManager: LanguageManager
+    @Binding var selectedTravelMode: TravelMode?
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(TravelMode.allCases, id: \.self) { travelMode in
+                    Button(action: {
+                        withAnimation {
+                            selectedTravelMode = travelMode
+                        }
+                    }) {
+                        VStack(spacing: 8) {
+                            Image(systemName: travelMode.icon)
+                                .font(.system(size: 24))
+                                .foregroundColor(selectedTravelMode == travelMode ? .white : .blue)
+                                .frame(width: 48, height: 48)
+                                .background(
+                                    Circle()
+                                        .fill(selectedTravelMode == travelMode ? Color.blue : Color.blue.opacity(0.1))
+                                )
+                            
+                            Text(travelMode.localizedName(languageManager: languageManager))
+                                .font(.caption)
+                                .foregroundColor(selectedTravelMode == travelMode ? .primary : .secondary)
+                                .multilineTextAlignment(.center)
+                                .frame(width: 70, height: 32)
+                                .lineLimit(2)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(height: 90)
+                }
+            }
+            .padding(.horizontal, 4)
+            .padding(.vertical, 8)
+        }
+    }
+}
+
 struct DateSelectionView: View {
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.managedObjectContext) private var viewContext
@@ -113,6 +154,7 @@ struct DateSelectionView: View {
     
     @State private var selectedTravelType: TravelType? = .solo
     @State private var selectedTransportationType: TransportationType? = .walking
+    @State private var selectedTravelMode: TravelMode? = .moderate
     
     var tripLengthInDays: Int {
         (Calendar.current.dateComponents([.day], from: startDate, to: endDate).day ?? 0) + 1
@@ -149,6 +191,50 @@ struct DateSelectionView: View {
                 
                 Section(header: Text(languageManager.localize("transportation_type"))) {
                     TransportationTypeSelector(selectedTransportationType: $selectedTransportationType)
+                }
+                
+                if storeManager.isPremium() {
+                    Section(header: Text(languageManager.localize("travel_mode"))) {
+                        TravelModeSelector(selectedTravelMode: $selectedTravelMode)
+                    }
+                } else {
+                    Section(header: Text(languageManager.localize("travel_mode"))) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "crown.fill")
+                                    .foregroundColor(.yellow)
+                                    .font(.system(size: 20))
+                                Text(languageManager.localize("premium_feature"))
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                            }
+                            
+                            Text(languageManager.localize("travel_mode_premium_description"))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            Button(action: {
+                                showPremiumView = true
+                            }) {
+                                Text(languageManager.localize("upgrade_to_premium"))
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                    .background(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .cornerRadius(10)
+                            }
+                            .padding(.top, 5)
+                        }
+                        .padding(.vertical, 10)
+                    }
                 }
                 
                 Section {
@@ -297,6 +383,10 @@ struct DateSelectionView: View {
         
         if let transportationType = selectedTransportationType {
             tripData["transportationType"] = transportationType.rawValue
+        }
+        
+        if let travelMode = selectedTravelMode {
+            tripData["travelMode"] = travelMode.rawValue
         }
         
         guard let url = URL(string: "https://city-tailor-backend-fol4vs6xk-alexmen656s-projects.vercel.app/api/trips") else {

@@ -222,6 +222,11 @@ class LanguageManager: ObservableObject {
                 "sightseeing": "Sightseeing",
                 "plan_load_error": "Reiseplan konnte nicht geladen werden",
                 "back": "Zurück",
+                "travel_mode": "Reise-Modus",
+                "travel_mode_relaxing": "Entspannt",
+                "travel_mode_moderate": "Moderat",
+                "travel_mode_active": "Aktiv",
+                "travel_mode_premium_description": "Exklusive Reisemodi nur mit Premium verfügbar",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Willkommen bei CityTailor",
@@ -230,7 +235,8 @@ class LanguageManager: ObservableObject {
                 "skip": "Überspringen",
                 
                 // Premium Feature
-                "support_future_development": "Unterstütze zukünftige Entwicklung"
+                "support_future_development": "Unterstütze zukünftige Entwicklung",
+                "premium_feature": "Premium-Funktion"
             ]
         case .en:
             return [
@@ -354,6 +360,11 @@ class LanguageManager: ObservableObject {
                 "sightseeing": "Sightseeing",
                 "plan_load_error": "Travel plan could not be loaded",
                 "back": "Back",
+                "travel_mode": "Travel Mode",
+                "travel_mode_relaxing": "Relaxing",
+                "travel_mode_moderate": "Moderate",
+                "travel_mode_active": "Active",
+                "travel_mode_premium_description": "Exclusive travel modes only available with Premium",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Welcome to CityTailor",
@@ -362,7 +373,8 @@ class LanguageManager: ObservableObject {
                 "skip": "Skip",
                 
                 // Premium Feature
-                "support_future_development": "Support future development"
+                "support_future_development": "Support Future Development",
+                "premium_feature": "Premium Feature"
             ]
         case .fr:
             return [
@@ -486,6 +498,11 @@ class LanguageManager: ObservableObject {
                 "sightseeing": "Visites Touristiques",
                 "plan_load_error": "Le plan de voyage n'a pas pu être chargé",
                 "back": "Retour",
+                "travel_mode": "Mode de Voyage",
+                "travel_mode_relaxing": "Détendu",
+                "travel_mode_moderate": "Modéré",
+                "travel_mode_active": "Actif",
+                "travel_mode_premium_description": "Modes de voyage exclusifs disponibles uniquement avec Premium",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Bienvenue sur CityTailor",
@@ -494,7 +511,8 @@ class LanguageManager: ObservableObject {
                 "skip": "Passer",
                 
                 // Premium Feature
-                "support_future_development": "Soutien au développement futur"
+                "support_future_development": "Soutenir le développement futur",
+                "premium_feature": "Fonctionnalité Premium"
             ]
         case .es:
             return [
@@ -618,6 +636,11 @@ class LanguageManager: ObservableObject {
                 "sightseeing": "Turismo",
                 "plan_load_error": "No se pudo cargar el plan de viaje",
                 "back": "Volver",
+                "travel_mode": "Modo de Viaje",
+                "travel_mode_relaxing": "Relajado",
+                "travel_mode_moderate": "Moderado",
+                "travel_mode_active": "Activo",
+                "travel_mode_premium_description": "Modos de viaje exclusivos solo disponibles con Premium",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Bienvenido a CityTailor",
@@ -626,7 +649,8 @@ class LanguageManager: ObservableObject {
                 "skip": "Omitir",
                 
                 // Premium Feature
-                "support_future_development": "Apoyo al desarrollo futuro"
+                "support_future_development": "Apoyo al desarrollo futuro",
+                "premium_feature": "Función Premium"
             ]
         case .it:
             return [
@@ -750,6 +774,11 @@ class LanguageManager: ObservableObject {
                 "sightseeing": "Visite Turistiche",
                 "plan_load_error": "Impossibile caricare il piano di viaggio",
                 "back": "Indietro",
+                "travel_mode": "Modalità di Viaggio",
+                "travel_mode_relaxing": "Rilassante",
+                "travel_mode_moderate": "Moderato",
+                "travel_mode_active": "Attivo",
+                "travel_mode_premium_description": "Modalità di viaggio esclusive disponibili solo con Premium",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Benvenuto su CityTailor",
@@ -758,7 +787,8 @@ class LanguageManager: ObservableObject {
                 "skip": "Salta",
                 
                 // Premium Feature
-                "support_future_development": "Supporto allo sviluppo futuro"
+                "support_future_development": "Supporto allo sviluppo futuro",
+                "premium_feature": "Funzionalità Premium"
             ]
         }
     }
