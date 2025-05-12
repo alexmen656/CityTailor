@@ -256,7 +256,7 @@ struct SettingsView: View {
                     HStack {
                         Text(languageManager.localize("version"))
                         Spacer()
-                        Text("1.0.0")
+                        Text("1.1")
                             .foregroundColor(.gray)
                     }
                 }
