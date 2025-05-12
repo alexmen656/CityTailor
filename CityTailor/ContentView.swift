@@ -36,6 +36,11 @@ struct ContentView: View {
     @State private var selectedDayNumber: Int = 1
     @State private var showSaveFeedback = false
     @StateObject private var tabSelection = TabSelection()
+    
+    private let popularCities = [
+        "Paris", "London", "New York", "Tokyo", "Rome", 
+        "Barcelona", "Berlin", "Amsterdam", "Vienna", "Prague"
+    ]
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
@@ -107,6 +112,14 @@ struct ContentView: View {
                             searchLocation()
                         }
                     )
+                }
+                
+                // Show city tags only when search is empty and no travel plan is active
+                if searchText.isEmpty && travelPlan == nil {
+                    SuggestedCityTags(cities: popularCities) { city in
+                        searchText = city
+                        searchLocation()
+                    }
                 }
                 
                 if let plan = travelPlan, let dailyPlans = plan.dailyPlans, !dailyPlans.isEmpty {
@@ -470,6 +483,35 @@ struct ActivityDetailView: View {
         case languageManager.localize("sightseeing").lowercased(): return Color.green
         default: return Color.gray
         }
+    }
+}
+
+struct SuggestedCityTags: View {
+    let cities: [String]
+    let onSelect: (String) -> Void
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 5) {
+                ForEach(cities, id: \.self) { city in
+                    Button(action: {
+                        onSelect(city)
+                    }) {
+                        Text(city)
+                            .font(.system(size: 14, weight: .medium))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color(UIColor.systemBackground))
+                            .foregroundColor(.primary)
+                            .cornerRadius(10)
+                            .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 5)
+        }
+        .frame(height: 50)
     }
 }
 
