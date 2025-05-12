@@ -5,6 +5,7 @@ struct PremiumView: View {
     @EnvironmentObject private var storeManager: StoreManager
     @EnvironmentObject private var languageManager: LanguageManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @State private var selectedProduct: Product?
     @State private var isProcessing = false
     @State private var showAlert = false
@@ -45,7 +46,7 @@ struct PremiumView: View {
                         }
                     }
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(colorScheme == .dark ? Color(.systemGray5) : Color(.systemGray6))
                     .cornerRadius(12)
                     .padding(.horizontal)
                     
