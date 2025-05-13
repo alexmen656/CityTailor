@@ -232,6 +232,9 @@ class LanguageManager: ObservableObject {
                 "export_pdf": "Export als PDF",
                 "export_plan_pdf": "Reiseplan als PDF exportieren",
                 "pdf_premium_description": "PDF-Export ist eine Premium-Funktion",
+                "share": "Teilen",
+                "check_out_my_trip_to": "Schau mal, mein Trip nach",
+                "created_with_citytailor": "erstellt mit der CityTailor App!",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Willkommen bei CityTailor",
@@ -375,6 +378,9 @@ class LanguageManager: ObservableObject {
                 "export_pdf": "Export as PDF",
                 "export_plan_pdf": "Export travel plan as PDF",
                 "pdf_premium_description": "PDF export is a premium feature",
+                "share": "Share",
+                "check_out_my_trip_to": "Check out my trip to",
+                "created_with_citytailor": "created with the CityTailor app!",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Welcome to CityTailor",
@@ -518,6 +524,9 @@ class LanguageManager: ObservableObject {
                 "export_pdf": "Exporter en PDF",
                 "export_plan_pdf": "Exporter le plan de voyage en PDF",
                 "pdf_premium_description": "L'exportation en PDF est une fonctionnalité premium",
+                "share": "Partager",
+                "check_out_my_trip_to": "Découvrez mon voyage à",
+                "created_with_citytailor": "créé avec l'application CityTailor!",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Bienvenue sur CityTailor",
@@ -661,6 +670,9 @@ class LanguageManager: ObservableObject {
                 "export_pdf": "Exportar como PDF",
                 "export_plan_pdf": "Exportar plan de viaje como PDF",
                 "pdf_premium_description": "La exportación en PDF es una función premium",
+                "share": "Compartir",
+                "check_out_my_trip_to": "Mira mi viaje a",
+                "created_with_citytailor": "creado con la aplicación CityTailor!",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Bienvenido a CityTailor",
@@ -804,6 +816,9 @@ class LanguageManager: ObservableObject {
                 "export_pdf": "Esporta come PDF",
                 "export_plan_pdf": "Esporta piano di viaggio come PDF",
                 "pdf_premium_description": "L'esportazione in PDF è una funzionalità premium",
+                "share": "Condividi",
+                "check_out_my_trip_to": "Guarda il mio viaggio a",
+                "created_with_citytailor": "creato con l'app CityTailor!",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Benvenuto su CityTailor",

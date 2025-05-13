@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreData
 import UniformTypeIdentifiers
+import StoreKit
 
 struct PlanDetailLoader: View {
     let planID: String
@@ -148,7 +149,6 @@ struct PlanDetailLoader: View {
                                         }
                                     }
                                     
-                                    // PDF Export Button als separate UI-Komponente
                                     Section {
                                         Button(action: {
                                             if storeManager.isPremium() {
@@ -223,8 +223,17 @@ struct PlanDetailLoader: View {
             loadPlanDetails()
         }
         .navigationBarItems(
-            trailing: Button(languageManager.localize("done")) {
-                presentationMode.wrappedValue.dismiss()
+            trailing: HStack(spacing: 16) {
+                Button(action: {
+                    shareTravelPlan()
+                }) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 18))
+                }
+                
+                Button(languageManager.localize("done")) {
+                    presentationMode.wrappedValue.dismiss()
+                }
             }
         )
         .sheet(isPresented: $showPremiumView) {
@@ -279,7 +288,7 @@ struct PlanDetailLoader: View {
         case "kultur": return Color.teal
         case "sightseeing": return Color.green
         default: return Color.gray
-        }
+    }
     }
     
     private func exportPDF() {
@@ -329,6 +338,16 @@ struct PlanDetailLoader: View {
                             activityVC.popoverPresentationController?.sourceView = topController.view
                             topController.present(activityVC, animated: true) {
                                 print("Share sheet presented successfully")
+                                
+                                let defaults = UserDefaults.standard
+                                let pdfExportCount = defaults.integer(forKey: "pdf_export_count") + 1
+                                defaults.set(pdfExportCount, forKey: "pdf_export_count")
+                                
+                                if pdfExportCount >= 2 {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                        requestAppReview(in: windowScene)
+                                    }
+                                }
                             }
                         } else {
                             print("Could not find root view controller")
@@ -342,6 +361,58 @@ struct PlanDetailLoader: View {
                 print("PDF generation failed")
             }
         }
+    }
+    
+    private func shareTravelPlan() {
+        guard let plan = loadedPlan else { return }
+        
+        #if os(macOS)
+        let appURL = URL(string: "https://apps.apple.com/app/id6745529824")!
+        let shareText = "\(languageManager.localize("check_out_my_trip_to")) \(plan.location) \(languageManager.localize("created_with_citytailor"))"
+        
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(shareText, forType: .string)
+        
+        print("Text copied to clipboard: \(shareText)")
+        #else
+        let appURL = URL(string: "https://apps.apple.com/app/id6745529824")!
+        let shareText = "\(languageManager.localize("check_out_my_trip_to")) \(plan.location) \(languageManager.localize("created_with_citytailor"))"
+        
+        let items: [Any] = [shareText, appURL]
+        
+        DispatchQueue.main.async {
+            let activityVC = UIActivityViewController(
+                activityItems: items, 
+                applicationActivities: nil
+            )
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootVC = windowScene.windows.first?.rootViewController {
+                var topController = rootVC
+                while let presentedController = topController.presentedViewController {
+                    topController = presentedController
+                }
+                
+                activityVC.popoverPresentationController?.sourceView = topController.view
+                topController.present(activityVC, animated: true) {
+                    print("Share sheet for plan presented successfully")
+                    
+                    let defaults = UserDefaults.standard
+                    let shareCount = defaults.integer(forKey: "app_share_count") + 1
+                    defaults.set(shareCount, forKey: "app_share_count")
+                    
+                    if shareCount >= 2 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            requestAppReview(in: windowScene)
+                        }
+                    }
+                }
+            } else {
+                print("Could not find root view controller for sharing")
+            }
+        }
+        #endif
     }
 }
 
@@ -376,3 +447,14 @@ struct ShareSheet: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: NSViewController, context: Context) {}
 }
 #endif
+
+private func requestAppReview(in windowScene: UIWindowScene) {
+    let defaults = UserDefaults.standard
+    let lastReviewRequest = defaults.object(forKey: "last_review_request") as? Date
+    
+    if lastReviewRequest == nil || Date().timeIntervalSince(lastReviewRequest!) > (60*60*24*30) {
+        SKStoreReviewController.requestReview(in: windowScene)
+        
+        defaults.set(Date(), forKey: "last_review_request")
+    }
+}

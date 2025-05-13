@@ -201,9 +201,20 @@ struct TravelPlanView: View {
                     Spacer()
                 }
             }
-            .navigationBarItems(trailing: Button(languageManager.localize("done")) {
-                presentationMode.wrappedValue.dismiss()
-            })
+            .navigationBarItems(
+                trailing: HStack(spacing: 16) {
+                    Button(action: {
+                        shareTravelPlan()
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 18))
+                    }
+                    
+                    Button(languageManager.localize("done")) {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            )
             .sheet(isPresented: $showPremiumView) {
                 PremiumView()
             }
@@ -361,6 +372,46 @@ struct TravelPlanView: View {
         } else {
             print("PDF generation failed")
         }
+    }
+    
+    func shareTravelPlan() {
+        #if os(macOS)
+        let appURL = URL(string: "https://apps.apple.com/app/id6745529824")!
+        let shareText = "\(languageManager.localize("check_out_my_trip_to")) \(travelPlan.location) \(languageManager.localize("created_with_citytailor"))"
+        
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(shareText, forType: .string)
+        
+        print("Text copied to clipboard: \(shareText)")
+        #else
+        let appURL = URL(string: "https://apps.apple.com/app/id6745529824")!
+        let shareText = "\(languageManager.localize("check_out_my_trip_to")) \(travelPlan.location) \(languageManager.localize("created_with_citytailor"))"
+        
+        let items: [Any] = [shareText, appURL]
+        
+        DispatchQueue.main.async {
+            let activityVC = UIActivityViewController(
+                activityItems: items, 
+                applicationActivities: nil
+            )
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootVC = windowScene.windows.first?.rootViewController {
+                var topController = rootVC
+                while let presentedController = topController.presentedViewController {
+                    topController = presentedController
+                }
+                
+                activityVC.popoverPresentationController?.sourceView = topController.view
+                topController.present(activityVC, animated: true) {
+                    print("Share sheet for plan presented successfully")
+                }
+            } else {
+                print("Could not find root view controller for sharing")
+            }
+        }
+        #endif
     }
 }
 
