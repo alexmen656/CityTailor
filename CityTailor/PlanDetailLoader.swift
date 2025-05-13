@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreData
+import UniformTypeIdentifiers
 
 struct PlanDetailLoader: View {
     let planID: String
@@ -10,6 +11,10 @@ struct PlanDetailLoader: View {
     @State private var loadError: String? = nil
     @State private var selectedDay: Int = 1
     @EnvironmentObject private var languageManager: LanguageManager
+    @EnvironmentObject private var storeManager: StoreManager
+    @State private var showPremiumView = false
+    @State private var showShareSheet = false
+    @State private var pdfData: Data?
 
     var body: some View {
         NavigationView {
@@ -142,6 +147,27 @@ struct PlanDetailLoader: View {
                                             }
                                         }
                                     }
+                                    
+                                    // PDF Export Button als separate UI-Komponente
+                                    Section {
+                                        Button(action: {
+                                            if storeManager.isPremium() {
+                                                exportPDF()
+                                            } else {
+                                                showPremiumView = true
+                                            }
+                                        }) {
+                                            HStack(spacing: 8) {
+                                                Image(systemName: "arrow.down.doc")
+                                                    .font(.system(size: 18))
+                                                Text(languageManager.localize("export_pdf"))
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .font(.system(size: 14))
+                                                    .foregroundColor(.gray)
+                                            }
+                                        }
+                                    }
                                 }
                             } else {
                                 Spacer()
@@ -196,6 +222,23 @@ struct PlanDetailLoader: View {
             print("DEBUG: PlanDetailLoader appeared with plan ID: \(planID)")
             loadPlanDetails()
         }
+        .navigationBarItems(
+            trailing: Button(languageManager.localize("done")) {
+                presentationMode.wrappedValue.dismiss()
+            }
+        )
+        .sheet(isPresented: $showPremiumView) {
+            PremiumView()
+        }
+        .sheet(isPresented: $showShareSheet) {
+            if let pdfData = pdfData {
+                #if os(macOS)
+                ShareSheet(items: [pdfData])
+                #else
+                ShareSheet(items: [pdfData])
+                #endif
+            }
+        }
     }
     
     private func loadPlanDetails() {
@@ -238,4 +281,98 @@ struct PlanDetailLoader: View {
         default: return Color.gray
         }
     }
+    
+    private func exportPDF() {
+        print("Starting PDF export from PlanDetailLoader")
+        if let plan = loadedPlan?.plan {
+            if let pdfData = PDFGenerator.generatePDF(from: plan, languageManager: languageManager) {
+                print("PDF generated successfully, size: \(pdfData.count) bytes")
+                
+                #if os(macOS)
+                let savePanel = NSSavePanel()
+                savePanel.nameFieldStringValue = "\(plan.location)_TravelPlan.pdf"
+                savePanel.allowedContentTypes = [UTType.pdf]
+                savePanel.canCreateDirectories = true
+                savePanel.isExtensionHidden = false
+                
+                savePanel.begin { response in
+                    if response == .OK, let url = savePanel.url {
+                        do {
+                            try pdfData.write(to: url)
+                            print("PDF successfully saved at: \(url.path)")
+                        } catch {
+                            print("Failed to save PDF: \(error)")
+                        }
+                    }
+                }
+                #else
+                DispatchQueue.main.async {
+                    let tempURL = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("\(plan.location)_TravelPlan.pdf")
+                    
+                    do {
+                        try pdfData.write(to: tempURL)
+                        print("PDF temporarily saved at: \(tempURL.path)")
+                        
+                        let activityVC = UIActivityViewController(
+                            activityItems: [tempURL], 
+                            applicationActivities: nil
+                        )
+                        
+                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                           let rootVC = windowScene.windows.first?.rootViewController {
+                            var topController = rootVC
+                            while let presentedController = topController.presentedViewController {
+                                topController = presentedController
+                            }
+                            
+                            activityVC.popoverPresentationController?.sourceView = topController.view
+                            topController.present(activityVC, animated: true) {
+                                print("Share sheet presented successfully")
+                            }
+                        } else {
+                            print("Could not find root view controller")
+                        }
+                    } catch {
+                        print("Failed to save temporary PDF: \(error)")
+                    }
+                }
+                #endif
+            } else {
+                print("PDF generation failed")
+            }
+        }
+    }
 }
+
+#if os(macOS)
+struct ShareSheet: UIViewControllerRepresentable {
+    var items: [Any]
+    
+    func makeUIViewController(context: Context) -> NSViewController {
+        let controller = NSViewController()
+        if let pdfData = items.first as? Data {
+            DispatchQueue.main.async {
+                let savePanel = NSSavePanel()
+                savePanel.nameFieldStringValue = "TravelPlan.pdf"
+                savePanel.allowedContentTypes = [UTType.pdf]
+                savePanel.canCreateDirectories = true
+                
+                savePanel.begin { response in
+                    if response == .OK, let url = savePanel.url {
+                        do {
+                            try pdfData.write(to: url)
+                            print("PDF successfully saved at: \(url.path)")
+                        } catch {
+                            print("Failed to save PDF: \(error)")
+                        }
+                    }
+                }
+            }
+        }
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: NSViewController, context: Context) {}
+}
+#endif

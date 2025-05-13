@@ -142,11 +142,12 @@ struct PremiumView: View {
             //languageManager.localize("custom_plans"),
             languageManager.localize("enhanced_ai"),
             languageManager.localize("advanced_settings"),
+            languageManager.localize("export_plan_pdf"),
             languageManager.localize("support_future_development")
             //languageManager.localize("offline_access"),
             //languageManager.localize("no_ads")
         ]
-    }
+    }gfhfghfghfghfghfghfghfghfghfghfghfghffghfghfghfghfghfghfghfghfghfghfghfghfghfgfghfghfghfghfhfhfhfhfhfghfhfgghffghfghfghghfghfhgfhgfghffghfghfgh
     
     func purchaseSubscription() {
         guard let product = selectedProduct else { return }

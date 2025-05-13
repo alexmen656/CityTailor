@@ -229,6 +229,9 @@ class LanguageManager: ObservableObject {
                 "travel_mode_moderate": "Moderat",
                 "travel_mode_active": "Aktiv",
                 "travel_mode_premium_description": "Exklusive Reisemodi nur mit Premium verfügbar",
+                "export_pdf": "Export als PDF",
+                "export_plan_pdf": "Reiseplan als PDF exportieren",
+                "pdf_premium_description": "PDF-Export ist eine Premium-Funktion",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Willkommen bei CityTailor",
@@ -369,6 +372,9 @@ class LanguageManager: ObservableObject {
                 "travel_mode_moderate": "Moderate",
                 "travel_mode_active": "Active",
                 "travel_mode_premium_description": "Exclusive travel modes only available with Premium",
+                "export_pdf": "Export as PDF",
+                "export_plan_pdf": "Export travel plan as PDF",
+                "pdf_premium_description": "PDF export is a premium feature",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Welcome to CityTailor",
@@ -509,6 +515,9 @@ class LanguageManager: ObservableObject {
                 "travel_mode_moderate": "Modéré",
                 "travel_mode_active": "Actif",
                 "travel_mode_premium_description": "Modes de voyage exclusifs disponibles uniquement avec Premium",
+                "export_pdf": "Exporter en PDF",
+                "export_plan_pdf": "Exporter le plan de voyage en PDF",
+                "pdf_premium_description": "L'exportation en PDF est une fonctionnalité premium",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Bienvenue sur CityTailor",
@@ -649,6 +658,9 @@ class LanguageManager: ObservableObject {
                 "travel_mode_moderate": "Moderado",
                 "travel_mode_active": "Activo",
                 "travel_mode_premium_description": "Modos de viaje exclusivos solo disponibles con Premium",
+                "export_pdf": "Exportar como PDF",
+                "export_plan_pdf": "Exportar plan de viaje como PDF",
+                "pdf_premium_description": "La exportación en PDF es una función premium",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Bienvenido a CityTailor",
@@ -789,6 +801,9 @@ class LanguageManager: ObservableObject {
                 "travel_mode_moderate": "Moderato",
                 "travel_mode_active": "Attivo",
                 "travel_mode_premium_description": "Modalità di viaggio esclusive disponibili solo con Premium",
+                "export_pdf": "Esporta come PDF",
+                "export_plan_pdf": "Esporta piano di viaggio come PDF",
+                "pdf_premium_description": "L'esportazione in PDF è una funzionalità premium",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Benvenuto su CityTailor",

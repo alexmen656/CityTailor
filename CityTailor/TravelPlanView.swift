@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct TravelPlanView: View {
     let travelPlan: TravelPlan
@@ -6,9 +7,12 @@ struct TravelPlanView: View {
     @Binding var selectedDay: Int
     @EnvironmentObject private var languageManager: LanguageManager
     @EnvironmentObject private var settings: AppSettings
+    @EnvironmentObject private var storeManager: StoreManager
+    @State private var showPremiumView = false
+    @State private var showShareSheet = false
+    @State private var pdfData: Data?
     var onActivitySelected: ((Activity) -> Void)? = nil
     
-    // Führe eine Initialisierung am Anfang durch
     init(travelPlan: TravelPlan, selectedDay: Binding<Int>, onActivitySelected: ((Activity) -> Void)? = nil) {
         self.travelPlan = travelPlan
         self._selectedDay = selectedDay
@@ -33,7 +37,6 @@ struct TravelPlanView: View {
                 }
                 .padding(.bottom)
                 .onAppear {
-                    // Debug-Ausgaben
                     print("DEBUG: TravelPlanView appeared for \(travelPlan.location)")
                     print("DEBUG: Selected day: \(selectedDay)")
                     if let dailyPlans = travelPlan.dailyPlans {
@@ -45,7 +48,6 @@ struct TravelPlanView: View {
                 }
                 
                 if let dailyPlans = travelPlan.dailyPlans, !dailyPlans.isEmpty {
-                    // Die State-Validierung wird in onAppear verschoben
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 15) {
                             ForEach(dailyPlans) { day in
@@ -63,10 +65,8 @@ struct TravelPlanView: View {
                     }
                     .background(Color(.systemGray6))
                     .onAppear {
-                        // Validiere den ausgewählten Tag erst nach der Darstellung
                         let validDayNumbers = dailyPlans.map { $0.dayNumber }
                         if !validDayNumbers.contains(selectedDay) {
-                            // Wähle den ersten Tag, falls der aktuelle nicht gültig ist
                             if let firstDay = dailyPlans.first {
                                 print("DEBUG: Selected day \(selectedDay) not valid, switching to day \(firstDay.dayNumber)")
                                 selectedDay = firstDay.dayNumber
@@ -125,7 +125,7 @@ struct TravelPlanView: View {
                                     }
                                 }
                                 .padding(.vertical, 8)
-                                .buttonStyle(PlainButtonStyle()) // Damit die Listenzeile nicht standardmäßig "blau" wird
+                                .buttonStyle(PlainButtonStyle())
                             }
                             
                             if let recommendations = travelPlan.recommendations {
@@ -152,6 +152,26 @@ struct TravelPlanView: View {
                                                 Label(tip, systemImage: "lightbulb.fill")
                                             }
                                         }
+                                    }
+                                }
+                            }
+                            
+                            Section {
+                                Button(action: {
+                                    if storeManager.isPremium() {
+                                        exportPDF()
+                                    } else {
+                                        showPremiumView = true
+                                    }
+                                }) {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "arrow.down.doc")
+                                            .font(.system(size: 18))
+                                        Text(languageManager.localize("export_pdf"))
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.gray)
                                     }
                                 }
                             }
@@ -184,11 +204,18 @@ struct TravelPlanView: View {
             .navigationBarItems(trailing: Button(languageManager.localize("done")) {
                 presentationMode.wrappedValue.dismiss()
             })
+            .sheet(isPresented: $showPremiumView) {
+                PremiumView()
+            }
+            .sheet(isPresented: $showShareSheet) {
+                if let pdfData = pdfData {
+                    ShareSheet(items: [pdfData])
+                }
+            }
         }
     }
     
     func formatDateShort(_ dateString: String) -> String {
-        // Verwende benutzerdefinierte Formatierung für kurze Datumsanzeige in Tabs
         let inputFormatter = DateFormatter()
         inputFormatter.dateFormat = "yyyy-MM-dd"
         
@@ -202,7 +229,6 @@ struct TravelPlanView: View {
     }
     
     func formatDateString(_ dateString: String) -> String {
-        // Verwende die Datumsformateinstellung des Benutzers
         let inputFormatter = DateFormatter()
         inputFormatter.dateFormat = "yyyy-MM-dd"
         
@@ -234,9 +260,7 @@ struct TravelPlanView: View {
         return formatter.date(from: dateString)
     }
     
-    // Funktion zur Formatierung der Kategorienamen (nur erster Buchstabe groß)
     func translateCategory(_ category: String) -> String {
-        // Erster Buchstabe groß, Rest unverändert
         guard let firstChar = category.first else { return category }
         return String(firstChar).uppercased() + category.dropFirst()
     }
@@ -244,47 +268,137 @@ struct TravelPlanView: View {
     func categoryColor(for category: String) -> Color {
         let lowercasedCategory = category.lowercased()
         
-        // Kunst/Art-Kategorien (Lila)
         if ["kunst", "art", "arte"].contains(where: lowercasedCategory.contains) {
             return Color.purple
         }
         
-        // Geschichte/History-Kategorien (Orange)
         if ["geschichte", "history", "histoire", "historia", "storia"].contains(where: lowercasedCategory.contains) {
             return Color.orange
         }
         
-        // Architektur/Architecture-Kategorien (Blau)
         if ["architektur", "architecture", "arquitectura", "architettura"].contains(where: lowercasedCategory.contains) {
             return Color.blue
         }
         
-        // Gastronomie/Gastronomy-Kategorien (Rot)
         if ["gastronomie", "gastronomy", "gastronomía", "gastronomia", "essen", "food", "cuisine"].contains(where: lowercasedCategory.contains) {
             return Color.red
         }
         
-        // Shopping-Kategorien (Pink)
         if ["shopping", "einkaufen", "compras", "achats"].contains(where: lowercasedCategory.contains) {
             return Color.pink
         }
         
-        // Nachtleben/Nightlife-Kategorien (Indigo)
         if ["nachtleben", "nightlife", "vida nocturna", "vie nocturne", "vita notturna"].contains(where: lowercasedCategory.contains) {
             return Color.indigo
         }
         
-        // Kultur/Culture-Kategorien (Teal)
         if ["kultur", "culture", "cultura"].contains(where: lowercasedCategory.contains) {
             return Color.teal
         }
         
-        // Sightseeing-Kategorien (Grün)
         if ["sightseeing", "besichtigung", "visites", "visitas", "visite"].contains(where: lowercasedCategory.contains) {
             return Color.green
         }
         
-        // Standard für unbekannte Kategorien
         return Color.gray
     }
+    
+    func exportPDF() {
+        print("Starting PDF export")
+        if let pdfData = PDFGenerator.generatePDF(from: travelPlan, languageManager: languageManager) {
+            print("PDF generated successfully, size: \(pdfData.count) bytes")
+            
+            #if os(macOS)
+            let savePanel = NSSavePanel()
+            savePanel.nameFieldStringValue = "\(travelPlan.location)_TravelPlan.pdf"
+            savePanel.allowedContentTypes = [UTType.pdf]
+            savePanel.canCreateDirectories = true
+            savePanel.isExtensionHidden = false
+            
+            savePanel.begin { response in
+                if response == .OK, let url = savePanel.url {
+                    do {
+                        try pdfData.write(to: url)
+                        print("PDF successfully saved at: \(url.path)")
+                    } catch {
+                        print("Failed to save PDF: \(error)")
+                    }
+                }
+            }
+            #else
+            DispatchQueue.main.async {
+                let tempURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("\(travelPlan.location)_TravelPlan.pdf")
+                
+                do {
+                    try pdfData.write(to: tempURL)
+                    print("PDF temporarily saved at: \(tempURL.path)")
+                    
+                    let activityVC = UIActivityViewController(
+                        activityItems: [tempURL], 
+                        applicationActivities: nil
+                    )
+                    
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let rootVC = windowScene.windows.first?.rootViewController {
+                        var topController = rootVC
+                        while let presentedController = topController.presentedViewController {
+                            topController = presentedController
+                        }
+                        
+                        activityVC.popoverPresentationController?.sourceView = topController.view
+                        topController.present(activityVC, animated: true) {
+                            print("Share sheet presented successfully")
+                        }
+                    } else {
+                        print("Could not find root view controller")
+                    }
+                } catch {
+                    print("Failed to save temporary PDF: \(error)")
+                }
+            }
+            #endif
+        } else {
+            print("PDF generation failed")
+        }
+    }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    var items: [Any]
+    
+    #if os(iOS)
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+    #else
+    func makeUIViewController(context: Context) -> NSViewController {
+        let controller = NSViewController()
+        if let pdfData = items.first as? Data {
+            DispatchQueue.main.async {
+                let savePanel = NSSavePanel()
+                savePanel.nameFieldStringValue = "TravelPlan.pdf"
+                savePanel.allowedContentTypes = [UTType.pdf]
+                savePanel.canCreateDirectories = true
+                
+                savePanel.begin { response in
+                    if response == .OK, let url = savePanel.url {
+                        do {
+                            try pdfData.write(to: url)
+                            print("PDF successfully saved at: \(url.path)")
+                        } catch {
+                            print("Failed to save PDF: \(error)")
+                        }
+                    }
+                }
+            }
+        }
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: NSViewController, context: Context) {}
+    #endif
 }
