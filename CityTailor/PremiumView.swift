@@ -147,7 +147,7 @@ struct PremiumView: View {
             //languageManager.localize("offline_access"),
             //languageManager.localize("no_ads")
         ]
-    }gfhfghfghfghfghfghfghfghfghfghfghfghffghfghfghfghfghfghfghfghfghfghfghfghfghfgfghfghfghfghfhfhfhfhfhfghfhfgghffghfghfghghfghfhgfhgfghffghfghfgh
+    }
     
     func purchaseSubscription() {
         guard let product = selectedProduct else { return }
