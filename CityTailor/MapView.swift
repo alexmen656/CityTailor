@@ -10,6 +10,19 @@ struct MapView: UIViewRepresentable {
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
+        
+        
+        mapView.register(
+            MKMarkerAnnotationView.self,
+            forAnnotationViewWithReuseIdentifier:MKMapViewDefaultAnnotationViewReuseIdentifier
+        )
+        
+        
+        mapView.register(
+            MKMarkerAnnotationView.self,
+            forAnnotationViewWithReuseIdentifier:MKMapViewDefaultClusterAnnotationViewReuseIdentifier
+        )
+        
         return mapView
     }
     
@@ -34,7 +47,7 @@ struct MapView: UIViewRepresentable {
             case .standard:
                 mapConfiguration = MKStandardMapConfiguration()
             case .satellite:
-                mapConfiguration = MKHybridMapConfiguration()  // Hybrid wird jetzt für Satellite verwendet
+                mapConfiguration = MKHybridMapConfiguration()
             default:
                 mapConfiguration = MKStandardMapConfiguration()
             }
@@ -73,16 +86,23 @@ struct MapView: UIViewRepresentable {
         view.removeAnnotations(view.annotations)
         
         for annotation in annotations {
-            let pin = MKPointAnnotation()
+            let pin = CustomPointAnnotation()
             pin.coordinate = annotation.coordinate
             pin.title = annotation.title
             pin.subtitle = annotation.subtitle
+            pin.activityInfo = annotation.activityInfo
+            pin.clusteringIdentifier = "ActivityCluster"
             view.addAnnotation(pin)
         }
     }
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
+    }
+    
+    class CustomPointAnnotation: MKPointAnnotation {
+        var activityInfo: Activity?
+        var clusteringIdentifier: String?
     }
     
     class Coordinator: NSObject, MKMapViewDelegate {
@@ -97,50 +117,84 @@ struct MapView: UIViewRepresentable {
         }
         
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            // Ignoriere Benutzerstandort
+            
             if annotation is MKUserLocation {
                 return nil
             }
             
-            let identifier = "ActivityPin"
             
-            // Wiederverwendbare Annotation View
-            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
-            
-            if annotationView == nil {
-                annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
-                annotationView?.canShowCallout = true
+            if let cluster = annotation as? MKClusterAnnotation {
+                let identifier = "ClusterPin"
+                var clusterView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
                 
-                let infoButton = UIButton(type: .detailDisclosure)
-                annotationView?.rightCalloutAccessoryView = infoButton
-            } else {
-                annotationView?.annotation = annotation
+                if clusterView == nil {
+                    clusterView = MKMarkerAnnotationView(annotation: cluster, reuseIdentifier: identifier)
+                } else {
+                    clusterView?.annotation = cluster
+                }
+                
+                
+                clusterView?.markerTintColor = .systemBlue
+                clusterView?.glyphText = "\(cluster.memberAnnotations.count)"
+                clusterView?.displayPriority = .defaultHigh
+                
+                
+                let count = cluster.memberAnnotations.count
+                cluster.title = "\(count) " + (count == 1 ? "Aktivität" : "Aktivitäten")
+                
+                
+                if let firstAnnotation = cluster.memberAnnotations.first as? CustomPointAnnotation,
+                   let title = firstAnnotation.title {
+                    cluster.subtitle = "Mehrere Aktivitäten in der Nähe"
+                }
+                
+                clusterView?.canShowCallout = true
+                return clusterView
             }
             
-            if let markerView = annotationView as? MKMarkerAnnotationView {
-                if let title = annotation.title, let title = title {
+            
+            if let customAnnotation = annotation as? CustomPointAnnotation {
+                let identifier = "ActivityPin"
+                var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
+                
+                if annotationView == nil {
+                    annotationView = MKMarkerAnnotationView(annotation: customAnnotation, reuseIdentifier: identifier)
+                    annotationView?.canShowCallout = true
+                    
+                    let infoButton = UIButton(type: .detailDisclosure)
+                    annotationView?.rightCalloutAccessoryView = infoButton
+                } else {
+                    annotationView?.annotation = customAnnotation
+                }
+                
+                
+                annotationView?.clusteringIdentifier = "ActivityCluster"
+                
+                if let title = customAnnotation.title {
                     if title.contains("Museum") {
-                        markerView.markerTintColor = .purple // Kunst/Museum
+                        annotationView?.markerTintColor = .purple 
                     } else if title.contains("Essen") || title.contains("Restaurant") {
-                        markerView.markerTintColor = .red // Gastronomie
+                        annotationView?.markerTintColor = .red 
                     } else if title.contains("Park") || title.contains("Natur") {
-                        markerView.markerTintColor = .green // Natur
+                        annotationView?.markerTintColor = .green 
                     } else if title.contains("Shopping") || title.contains("Markt") {
-                        markerView.markerTintColor = .orange // Shopping
+                        annotationView?.markerTintColor = .orange 
                     } else {
-                        markerView.markerTintColor = .blue // Standard
+                        annotationView?.markerTintColor = .blue 
                     }
                 }
+                
+                return annotationView
             }
             
-            return annotationView
+            return nil
         }
         
-        // Reagiere auf Klicks auf den Info-Button
+        
         func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
             if let annotation = view.annotation, let title = annotation.title {
                 print("Info-Button wurde geklickt für: \(title ?? "Unbekannt")")
-                // comming soon
+                
             }
         }
     }
