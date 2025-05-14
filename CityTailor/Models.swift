@@ -126,11 +126,12 @@ struct Activity: Codable, Identifiable {
     let time: String
     let title: String
     let description: String
-    let location: String
+    let mapAddress: String
+    let displayAddress: String
     let category: String
     
     enum CodingKeys: String, CodingKey {
-        case time, title, description, location, category
+        case time, title, description, mapAddress, displayAddress, category, location
     }
     
     init(from decoder: Decoder) throws {
@@ -138,15 +139,40 @@ struct Activity: Codable, Identifiable {
         time = try container.decode(String.self, forKey: .time)
         title = try container.decode(String.self, forKey: .title)
         description = try container.decode(String.self, forKey: .description)
-        location = try container.decode(String.self, forKey: .location)
+        
+        
+        let mapAddr = try? container.decodeIfPresent(String.self, forKey: .mapAddress)
+        let displayAddr = try? container.decodeIfPresent(String.self, forKey: .displayAddress)
+        
+        if let map = mapAddr, let display = displayAddr {
+            mapAddress = map
+            displayAddress = display
+        } else {
+            
+            let location = try container.decode(String.self, forKey: .location)
+            mapAddress = location
+            displayAddress = location
+        }
+        
         category = try container.decode(String.self, forKey: .category)
     }
     
-    init(time: String, title: String, description: String, location: String, category: String) {
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(time, forKey: .time)
+        try container.encode(title, forKey: .title)
+        try container.encode(description, forKey: .description)
+        try container.encode(mapAddress, forKey: .mapAddress)
+        try container.encode(displayAddress, forKey: .displayAddress)
+        try container.encode(category, forKey: .category)
+    }
+    
+    init(time: String, title: String, description: String, mapAddress: String, displayAddress: String, category: String) {
         self.time = time
         self.title = title
         self.description = description
-        self.location = location
+        self.mapAddress = mapAddress
+        self.displayAddress = displayAddress
         self.category = category
     }
 }

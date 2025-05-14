@@ -16,7 +16,7 @@ struct ContentView: View {
     @EnvironmentObject private var languageManager: LanguageManager
     @EnvironmentObject private var storeManager: StoreManager
     @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954), // Berlin as default
+        center: CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954), 
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
     )
     @State private var searchText = ""
@@ -114,7 +114,7 @@ struct ContentView: View {
                     )
                 }
                 
-                // Show city tags only when search is empty and no travel plan is active
+                
                 if searchText.isEmpty && travelPlan == nil {
                     SuggestedCityTags(cities: popularCities) { city in
                         searchText = city
@@ -296,7 +296,7 @@ struct ContentView: View {
     }
 }
 
-// SearchSuggestionsView als separater Komponente
+
 struct SearchSuggestionsView: View {
     let suggestions: [String]
     let onSelect: (String) -> Void
@@ -351,7 +351,7 @@ struct SearchSuggestionsView: View {
     }
 }
 
-// DayButtonsView als einfache Komponente mit festen Größen
+
 struct DayButtonsView: View {
     let dailyPlans: [DailyPlan]
     @Binding var selectedDayNumber: Int
@@ -384,7 +384,7 @@ struct DayButtonsView: View {
     }
 }
 
-// TravelPlanSummaryView als separate Komponente
+
 struct TravelPlanSummaryView: View {
     let plan: TravelPlan
     let onTap: () -> Void
@@ -456,7 +456,7 @@ struct ActivityDetailView: View {
                     HStack {
                         Image(systemName: "mappin.circle.fill")
                             .foregroundColor(.red)
-                        Text(activity.location)
+                        Text(activity.displayAddress)
                     }
                     .padding(.top, 8)
                     

@@ -32,7 +32,7 @@ class GeocodingService {
         for activity in activities {
             group.enter()
             
-            geocodeAddress(from: activity.location, inCity: city) { coordinate in
+            geocodeAddress(from: activity.mapAddress, inCity: city) { coordinate in
                 if let coordinate = coordinate {
                     let annotation = MapAnnotation(
                         title: activity.title,

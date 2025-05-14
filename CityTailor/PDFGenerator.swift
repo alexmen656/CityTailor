@@ -159,7 +159,7 @@ class PDFGenerator {
                 height: 20
             )
             
-            let locationString = "\(languageManager.localize("location")): \(activity.location)"
+            let locationString = "\(languageManager.localize("location")): \(activity.displayAddress)"
             locationString.draw(in: locationRect, withAttributes: locationAttributes)
             currentY += 30
         }

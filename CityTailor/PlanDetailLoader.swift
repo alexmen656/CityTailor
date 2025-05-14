@@ -112,7 +112,7 @@ struct PlanDetailLoader: View {
                                             HStack {
                                                 Image(systemName: "mappin.circle.fill")
                                                     .foregroundColor(.red)
-                                                Text(activity.location)
+                                                Text(activity.displayAddress)
                                                     .font(.subheadline)
                                                     .foregroundColor(.primary)
                                             }
