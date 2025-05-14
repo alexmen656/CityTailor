@@ -83,16 +83,37 @@ struct MapView: UIViewRepresentable {
     }
     
     func updateAnnotations(view: MKMapView, annotations: [MapAnnotation]) {
-        view.removeAnnotations(view.annotations)
+        
+        let currentAnnotations = view.annotations.compactMap { $0 as? CustomPointAnnotation }
+        let currentCoordinates = Set(currentAnnotations.map { 
+            "\($0.coordinate.latitude),\($0.coordinate.longitude)"
+        })
         
         for annotation in annotations {
-            let pin = CustomPointAnnotation()
-            pin.coordinate = annotation.coordinate
-            pin.title = annotation.title
-            pin.subtitle = annotation.subtitle
-            pin.activityInfo = annotation.activityInfo
-            pin.clusteringIdentifier = "ActivityCluster"
-            view.addAnnotation(pin)
+            let coordinateKey = "\(annotation.coordinate.latitude),\(annotation.coordinate.longitude)"
+            
+            if !currentCoordinates.contains(coordinateKey) {
+                let pin = CustomPointAnnotation()
+                pin.coordinate = annotation.coordinate
+                pin.title = annotation.title
+                pin.subtitle = annotation.subtitle
+                pin.activityInfo = annotation.activityInfo
+                pin.clusteringIdentifier = "ActivityCluster"
+                view.addAnnotation(pin)
+            }
+        }
+        
+        let newCoordinates = Set(annotations.map {
+            "\($0.coordinate.latitude),\($0.coordinate.longitude)"
+        })
+        
+        let annotationsToRemove = currentAnnotations.filter {
+            let key = "\($0.coordinate.latitude),\($0.coordinate.longitude)"
+            return !newCoordinates.contains(key)
+        }
+        
+        if !annotationsToRemove.isEmpty {
+            view.removeAnnotations(annotationsToRemove)
         }
     }
     
@@ -134,10 +155,20 @@ struct MapView: UIViewRepresentable {
                 }
                 
                 
+                
                 clusterView?.markerTintColor = .systemBlue
                 clusterView?.glyphText = "\(cluster.memberAnnotations.count)"
-                clusterView?.displayPriority = .defaultHigh
-                
+
+
+                clusterView?.displayPriority = .required
+                clusterView?.collisionMode = .rectangle
+                clusterView?.layer.zPosition = 1000
+                clusterView?.layer.shouldRasterize = false
+                clusterView?.layer.isOpaque = false
+                clusterView?.alpha = 1
+                clusterView?.isHidden = false
+                clusterView?.layer.speed = 0.99999
+
                 
                 let count = cluster.memberAnnotations.count
                 cluster.title = "\(count) " + (count == 1 ? "Aktivität" : "Aktivitäten")
@@ -169,6 +200,8 @@ struct MapView: UIViewRepresentable {
                 
                 
                 annotationView?.clusteringIdentifier = "ActivityCluster"
+                
+                annotationView?.displayPriority = .required
                 
                 if let title = customAnnotation.title {
                     if title.contains("Museum") {
