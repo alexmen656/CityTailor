@@ -11,12 +11,10 @@ struct MapView: UIViewRepresentable {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         
-        
         mapView.register(
             MKMarkerAnnotationView.self,
             forAnnotationViewWithReuseIdentifier:MKMapViewDefaultAnnotationViewReuseIdentifier
         )
-        
         
         mapView.register(
             MKMarkerAnnotationView.self,
@@ -83,7 +81,7 @@ struct MapView: UIViewRepresentable {
     }
     
     func updateAnnotations(view: MKMapView, annotations: [MapAnnotation]) {
-        // First, group annotations by their exact coordinates
+        
         var coordinateGroups = [String: [MapAnnotation]]()
         
         for annotation in annotations {
@@ -95,13 +93,12 @@ struct MapView: UIViewRepresentable {
             }
         }
         
-        // Remove existing annotations that are no longer needed
         let existingAnnotations = view.annotations.compactMap { $0 as? CustomPointAnnotation }
         let newCoordinateKeys = Set(coordinateGroups.keys)
         
         let annotationsToRemove = existingAnnotations.filter {
             let key = "\($0.coordinate.latitude),\($0.coordinate.longitude)"
-            // Also remove annotations that need to be updated with offset positioning
+            
             return !newCoordinateKeys.contains(key) || 
                    (coordinateGroups[key]?.count ?? 0) > 1
         }
@@ -110,13 +107,12 @@ struct MapView: UIViewRepresentable {
             view.removeAnnotations(annotationsToRemove)
         }
         
-        // Add annotations with proper offsets when zoomed in enough
-        let isZoomedIn = view.region.span.latitudeDelta < 0.01 // Threshold for "zoomed in"
+        let isZoomedIn = view.region.span.latitudeDelta < 0.01 
         
         for (coordinateKey, group) in coordinateGroups {
-            // If there's only one annotation at this location, no offset needed
+            
             if group.count == 1 {
-                // Check if annotation already exists
+                
                 if !existingAnnotations.contains(where: { 
                     "\($0.coordinate.latitude),\($0.coordinate.longitude)" == coordinateKey
                 }) {
@@ -130,15 +126,13 @@ struct MapView: UIViewRepresentable {
                     view.addAnnotation(pin)
                 }
             } else if isZoomedIn {
-                // Multiple annotations at same location AND zoomed in - apply offset
-                let baseCoordinate = group[0].coordinate
-                let offsetDistance = 0.0001 * Double(min(group.count, 5)) // Small offset, proportional to count
                 
-                // Add annotations in a circular pattern around the base coordinate
+                let baseCoordinate = group[0].coordinate
+                let offsetDistance = 0.0001 * Double(min(group.count, 5)) 
+                
                 for (index, annotation) in group.enumerated() {
                     let angle = Double(index) * (2.0 * .pi / Double(group.count))
                     
-                    // Calculate offset position in a circle
                     let offsetLat = baseCoordinate.latitude + offsetDistance * cos(angle)
                     let offsetLon = baseCoordinate.longitude + offsetDistance * sin(angle)
                     
@@ -147,13 +141,11 @@ struct MapView: UIViewRepresentable {
                     pin.title = annotation.title
                     pin.subtitle = annotation.subtitle
                     pin.activityInfo = annotation.activityInfo
-                    pin.originalCoordinate = baseCoordinate // Store the original coordinate
+                    pin.originalCoordinate = baseCoordinate 
                     pin.clusteringIdentifier = "ActivityCluster"
                     view.addAnnotation(pin)
                 }
             } else {
-                // Multiple pins but not zoomed in enough, add at exact location
-                // Let clustering handle the visual representation
                 for annotation in group {
                     let pin = CustomPointAnnotation()
                     pin.coordinate = annotation.coordinate
@@ -194,7 +186,6 @@ struct MapView: UIViewRepresentable {
                 return nil
             }
             
-            
             if let cluster = annotation as? MKClusterAnnotation {
                 let identifier = "ClusterPin"
                 var clusterView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
@@ -205,12 +196,8 @@ struct MapView: UIViewRepresentable {
                     clusterView?.annotation = cluster
                 }
                 
-                
-                
                 clusterView?.markerTintColor = .systemBlue
                 clusterView?.glyphText = "\(cluster.memberAnnotations.count)"
-
-
                 clusterView?.displayPriority = .required
                 clusterView?.collisionMode = .rectangle
                 clusterView?.layer.zPosition = 1000
@@ -220,10 +207,8 @@ struct MapView: UIViewRepresentable {
                 clusterView?.isHidden = false
                 clusterView?.layer.speed = 0.99999
 
-                
                 let count = cluster.memberAnnotations.count
                 cluster.title = "\(count) " + (count == 1 ? "Aktivität" : "Aktivitäten")
-                
                 
                 if let firstAnnotation = cluster.memberAnnotations.first as? CustomPointAnnotation,
                    let title = firstAnnotation.title {
@@ -233,7 +218,6 @@ struct MapView: UIViewRepresentable {
                 clusterView?.canShowCallout = true
                 return clusterView
             }
-            
             
             if let customAnnotation = annotation as? CustomPointAnnotation {
                 let identifier = "ActivityPin"
@@ -249,9 +233,7 @@ struct MapView: UIViewRepresentable {
                     annotationView?.annotation = customAnnotation
                 }
                 
-                
                 annotationView?.clusteringIdentifier = "ActivityCluster"
-                
                 annotationView?.displayPriority = .required
                 
                 if let title = customAnnotation.title {
@@ -273,7 +255,6 @@ struct MapView: UIViewRepresentable {
             
             return nil
         }
-        
         
         func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
             if let annotation = view.annotation, let title = annotation.title {
