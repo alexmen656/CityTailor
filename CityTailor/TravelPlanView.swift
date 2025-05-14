@@ -10,6 +10,8 @@ struct TravelPlanView: View {
     @EnvironmentObject private var storeManager: StoreManager
     @State private var showPremiumView = false
     @State private var showShareSheet = false
+    @State private var showEmptyDetailView = false
+    @State private var selectedActivity: Activity?
     @State private var pdfData: Data?
     var onActivitySelected: ((Activity) -> Void)? = nil
     
@@ -77,55 +79,64 @@ struct TravelPlanView: View {
                     if let dayPlan = dailyPlans.first(where: { $0.dayNumber == selectedDay }) {
                         List {
                             ForEach(dayPlan.activities) { activity in
-                                Button(action: {
-                                    if let onActivitySelected = onActivitySelected {
-                                        onActivitySelected(activity)
-                                    }
-                                }) {
-                                    VStack(alignment: .leading, spacing: 5) {
-                                        HStack {
-                                            Text(activity.time)
-                                                .font(.headline)
-                                                .foregroundColor(.blue)
-                                            
-                                            Spacer()
-                                            
-                                            Text(translateCategory(activity.category))
-                                                .font(.caption)
-                                                .padding(5)
-                                                .background(categoryColor(for: activity.category))
-                                                .foregroundColor(.white)
-                                                .cornerRadius(5)
-                                        }
+                                VStack(alignment: .leading, spacing: 5) {
+                                    HStack {
+                                        Text(activity.time)
+                                            .font(.headline)
+                                            .foregroundColor(.blue)
                                         
-                                        Text(activity.title)
-                                            .font(.title3)
-                                            .bold()
+                                        Spacer()
+                                        
+                                        Text(translateCategory(activity.category))
+                                            .font(.caption)
+                                            .padding(5)
+                                            .background(categoryColor(for: activity.category))
+                                            .foregroundColor(.white)
+                                            .cornerRadius(5)
+                                    }
+                                    
+                                    Text(activity.title)
+                                        .font(.title3)
+                                        .bold()
+                                        .foregroundColor(.primary)
+                                    
+                                    Text(activity.description)
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(2)
+                                    
+                                    HStack {
+                                        Image(systemName: "mappin.circle.fill")
+                                            .foregroundColor(.red)
+                                        Text(activity.displayAddress)
+                                            .font(.subheadline)
                                             .foregroundColor(.primary)
                                         
-                                        Text(activity.description)
-                                            .font(.body)
-                                            .foregroundColor(.secondary)
-                                            .lineLimit(2)
+                                        Spacer()
                                         
-                                        HStack {
-                                            Image(systemName: "mappin.circle.fill")
-                                                .foregroundColor(.red)
-                                            Text(activity.displayAddress)
-                                                .font(.subheadline)
-                                                .foregroundColor(.primary)
-                                            
-                                            Spacer()
-                                            
+                                        Button(action: {
+                                            selectedActivity = activity
+                                            if let onActivitySelected = onActivitySelected {
+                                                onActivitySelected(activity)
+                                            }
+                                        }) {
                                             Image(systemName: "map")
                                                 .foregroundColor(.blue)
-                                                .padding(.trailing, 4)
                                         }
-                                        .padding(.top, 3)
+                                        .padding(.trailing, 8)
+                                        
+                                        Button(action: {
+                                            selectedActivity = activity
+                                            showEmptyDetailView = true
+                                        }) {
+                                            Image(systemName: "info.circle")
+                                                .foregroundColor(.blue)
+                                        }
+                                        .padding(.trailing, 4)
                                     }
+                                    .padding(.top, 3)
                                 }
                                 .padding(.vertical, 8)
-                                .buttonStyle(PlainButtonStyle())
                             }
                             
                             if let recommendations = travelPlan.recommendations {
@@ -222,6 +233,9 @@ struct TravelPlanView: View {
                 if let pdfData = pdfData {
                     ShareSheet(items: [pdfData])
                 }
+            }
+            .sheet(isPresented: $showEmptyDetailView) {
+                EmptyDetailView(activity: selectedActivity)
             }
         }
     }
@@ -412,6 +426,27 @@ struct TravelPlanView: View {
             }
         }
         #endif
+    }
+}
+
+struct EmptyDetailView: View {
+    var activity: Activity?
+    @Environment(\.presentationMode) var presentationMode
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                Spacer()
+                Text("Detailansicht")
+                    .font(.title)
+                    .padding()
+                Spacer()
+            }
+            .navigationBarItems(trailing: Button("Schließen") {
+                presentationMode.wrappedValue.dismiss()
+            })
+            .navigationTitle(activity?.title ?? "Details")
+        }
     }
 }
 
