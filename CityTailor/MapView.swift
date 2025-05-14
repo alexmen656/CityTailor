@@ -83,37 +83,87 @@ struct MapView: UIViewRepresentable {
     }
     
     func updateAnnotations(view: MKMapView, annotations: [MapAnnotation]) {
-        
-        let currentAnnotations = view.annotations.compactMap { $0 as? CustomPointAnnotation }
-        let currentCoordinates = Set(currentAnnotations.map { 
-            "\($0.coordinate.latitude),\($0.coordinate.longitude)"
-        })
+        // First, group annotations by their exact coordinates
+        var coordinateGroups = [String: [MapAnnotation]]()
         
         for annotation in annotations {
             let coordinateKey = "\(annotation.coordinate.latitude),\(annotation.coordinate.longitude)"
-            
-            if !currentCoordinates.contains(coordinateKey) {
-                let pin = CustomPointAnnotation()
-                pin.coordinate = annotation.coordinate
-                pin.title = annotation.title
-                pin.subtitle = annotation.subtitle
-                pin.activityInfo = annotation.activityInfo
-                pin.clusteringIdentifier = "ActivityCluster"
-                view.addAnnotation(pin)
+            if coordinateGroups[coordinateKey] == nil {
+                coordinateGroups[coordinateKey] = [annotation]
+            } else {
+                coordinateGroups[coordinateKey]?.append(annotation)
             }
         }
         
-        let newCoordinates = Set(annotations.map {
-            "\($0.coordinate.latitude),\($0.coordinate.longitude)"
-        })
+        // Remove existing annotations that are no longer needed
+        let existingAnnotations = view.annotations.compactMap { $0 as? CustomPointAnnotation }
+        let newCoordinateKeys = Set(coordinateGroups.keys)
         
-        let annotationsToRemove = currentAnnotations.filter {
+        let annotationsToRemove = existingAnnotations.filter {
             let key = "\($0.coordinate.latitude),\($0.coordinate.longitude)"
-            return !newCoordinates.contains(key)
+            // Also remove annotations that need to be updated with offset positioning
+            return !newCoordinateKeys.contains(key) || 
+                   (coordinateGroups[key]?.count ?? 0) > 1
         }
         
         if !annotationsToRemove.isEmpty {
             view.removeAnnotations(annotationsToRemove)
+        }
+        
+        // Add annotations with proper offsets when zoomed in enough
+        let isZoomedIn = view.region.span.latitudeDelta < 0.01 // Threshold for "zoomed in"
+        
+        for (coordinateKey, group) in coordinateGroups {
+            // If there's only one annotation at this location, no offset needed
+            if group.count == 1 {
+                // Check if annotation already exists
+                if !existingAnnotations.contains(where: { 
+                    "\($0.coordinate.latitude),\($0.coordinate.longitude)" == coordinateKey
+                }) {
+                    let annotation = group[0]
+                    let pin = CustomPointAnnotation()
+                    pin.coordinate = annotation.coordinate
+                    pin.title = annotation.title
+                    pin.subtitle = annotation.subtitle
+                    pin.activityInfo = annotation.activityInfo
+                    pin.clusteringIdentifier = "ActivityCluster"
+                    view.addAnnotation(pin)
+                }
+            } else if isZoomedIn {
+                // Multiple annotations at same location AND zoomed in - apply offset
+                let baseCoordinate = group[0].coordinate
+                let offsetDistance = 0.0001 * Double(min(group.count, 5)) // Small offset, proportional to count
+                
+                // Add annotations in a circular pattern around the base coordinate
+                for (index, annotation) in group.enumerated() {
+                    let angle = Double(index) * (2.0 * .pi / Double(group.count))
+                    
+                    // Calculate offset position in a circle
+                    let offsetLat = baseCoordinate.latitude + offsetDistance * cos(angle)
+                    let offsetLon = baseCoordinate.longitude + offsetDistance * sin(angle)
+                    
+                    let pin = CustomPointAnnotation()
+                    pin.coordinate = CLLocationCoordinate2D(latitude: offsetLat, longitude: offsetLon)
+                    pin.title = annotation.title
+                    pin.subtitle = annotation.subtitle
+                    pin.activityInfo = annotation.activityInfo
+                    pin.originalCoordinate = baseCoordinate // Store the original coordinate
+                    pin.clusteringIdentifier = "ActivityCluster"
+                    view.addAnnotation(pin)
+                }
+            } else {
+                // Multiple pins but not zoomed in enough, add at exact location
+                // Let clustering handle the visual representation
+                for annotation in group {
+                    let pin = CustomPointAnnotation()
+                    pin.coordinate = annotation.coordinate
+                    pin.title = annotation.title
+                    pin.subtitle = annotation.subtitle
+                    pin.activityInfo = annotation.activityInfo
+                    pin.clusteringIdentifier = "ActivityCluster"
+                    view.addAnnotation(pin)
+                }
+            }
         }
     }
     
@@ -124,6 +174,7 @@ struct MapView: UIViewRepresentable {
     class CustomPointAnnotation: MKPointAnnotation {
         var activityInfo: Activity?
         var clusteringIdentifier: String?
+        var originalCoordinate: CLLocationCoordinate2D?
     }
     
     class Coordinator: NSObject, MKMapViewDelegate {
