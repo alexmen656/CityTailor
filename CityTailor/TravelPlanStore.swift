@@ -1,6 +1,7 @@
 import Foundation
 import CoreData
 import SwiftUI
+import WidgetKit
 
 class TravelPlanStore {
     
@@ -8,7 +9,7 @@ class TravelPlanStore {
     static let FREE_PLAN_LIMIT = 3
     
     func saveTravelPlan(_ travelPlan: TravelPlan, context: NSManagedObjectContext) {
-        // Create a new SavedTravelPlan entity
+        
         let savedPlan = SavedTravelPlan(context: context)
         savedPlan.id = UUID().uuidString
         savedPlan.location = travelPlan.location
@@ -16,15 +17,17 @@ class TravelPlanStore {
         savedPlan.endDate = travelPlan.period.endDate
         savedPlan.creationDate = Date()
         
-        // Convert TravelPlan to Data for storage
+        
         if let encodedData = try? JSONEncoder().encode(travelPlan) {
             savedPlan.planData = encodedData
         }
         
-        // Save the context
         do {
             try context.save()
             print("Travel plan saved successfully: \(travelPlan.location)")
+            
+            
+            updateWidgetData(context: context)
         } catch {
             print("Failed to save travel plan: \(error.localizedDescription)")
         }
@@ -46,9 +49,6 @@ class TravelPlanStore {
                     return nil
                 }
                 
-                // Debug-Ausgabe für die planData
-                print("DEBUG: Plan data size: \(planData.count) bytes")
-                
                 do {
                     let plan = try JSONDecoder().decode(TravelPlan.self, from: planData)
                     print("DEBUG: Successfully decoded travel plan for \(location)")
@@ -65,7 +65,7 @@ class TravelPlanStore {
                     )
                 } catch {
                     print("DEBUG: Failed to decode travel plan: \(error.localizedDescription)")
-                    // Versuche, den Fehler detaillierter zu analysieren
+                    
                     if let decodingError = error as? DecodingError {
                         switch decodingError {
                         case .dataCorrupted(let context):
@@ -99,18 +99,20 @@ class TravelPlanStore {
                 context.delete(plan)
             }
             try context.save()
+            
+            
+            updateWidgetData(context: context)
         } catch {
             print("Failed to delete travel plan: \(error.localizedDescription)")
         }
     }
     
     func canSaveTravelPlan(isPremium: Bool, context: NSManagedObjectContext) -> Bool {
-        // Premium-Nutzer können unbegrenzt viele Pläne speichern
+        
         if isPremium {
             return true
         }
-        
-        // Anzahl der vorhandenen Pläne prüfen
+         
         let fetchRequest: NSFetchRequest<SavedTravelPlan> = SavedTravelPlan.fetchRequest()
         
         do {
@@ -138,9 +140,116 @@ class TravelPlanStore {
         let currentCount = getNumberOfSavedPlans(context: context)
         return max(0, TravelPlanStore.FREE_PLAN_LIMIT - currentCount)
     }
+    
+    func updateWidgetData(context: NSManagedObjectContext) {
+        let plans = getTravelPlans(context: context)
+        
+        let upcomingPlans = plans.sorted { 
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            guard let date1 = dateFormatter.date(from: $0.startDate),
+                  let date2 = dateFormatter.date(from: $1.startDate) else {
+                return false
+            }
+            return date1 < date2
+        }
+        
+        let today = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let filteredPlans = upcomingPlans.filter { 
+            guard let startDate = dateFormatter.date(from: $0.startDate) else {
+                return false
+            }
+            return startDate >= today
+        }
+        
+        struct WidgetPlan: Codable {
+            let id: String
+            let location: String
+            let startDate: String
+            let endDate: String
+        }
+        
+        let widgetPlans = filteredPlans.prefix(5).map { plan in
+            WidgetPlan(
+                id: plan.id,
+                location: plan.location,
+                startDate: plan.startDate,
+                endDate: plan.endDate
+            )
+        }
+        
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.app.CityTailor") {
+            do {
+                let encodedData = try JSONEncoder().encode(widgetPlans)
+                sharedDefaults.set(encodedData, forKey: "widget_travel_plans")
+                print("App: \(widgetPlans.count) Reisepläne für Widget gespeichert")
+            } catch {
+                print("App: Fehler beim Speichern der Widget-Daten: \(error)")
+            }
+        }
+        
+        #if !targetEnvironment(macCatalyst) && !os(macOS)
+        WidgetCenter.shared.reloadAllTimelines()
+        #endif
+    }
+    
+    func updatePremiumWidgetData(context: NSManagedObjectContext, isPremium: Bool) {
+         if let sharedDefaults = UserDefaults(suiteName: "group.com.app.CityTailor") {
+            sharedDefaults.set(isPremium, forKey: "is_premium_user")
+            sharedDefaults.synchronize()
+        } else {
+            return
+        }
+        
+        if !isPremium {
+            return
+        }
+        
+        let plans = getTravelPlans(context: context)        
+        
+        struct PremiumWidgetPlan: Codable {
+            let id: String
+            let location: String
+            let startDate: String
+            let endDate: String
+            let activitiesCount: Int
+            let isPremiumTrip: Bool
+        }
+        
+        let premiumPlans = plans.map { plan -> PremiumWidgetPlan in
+            
+            let activitiesCount = plan.plan.dailyPlans?.reduce(0) { count, day in
+                return count + day.activities.count
+            } ?? 0
+            
+            return PremiumWidgetPlan(
+                id: plan.id,
+                location: plan.location,
+                startDate: plan.startDate,
+                endDate: plan.endDate,
+                activitiesCount: activitiesCount,
+                isPremiumTrip: true  
+            )
+        }
+        
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.app.CityTailor") {
+            do {
+                let encodedData = try JSONEncoder().encode(premiumPlans)
+                sharedDefaults.set(encodedData, forKey: "premium_widget_plans")
+                sharedDefaults.synchronize()
+            } catch {
+                print("TravelPlanStore: Fehler beim Speichern der Premium-Daten: \(error)")
+            }
+        }
+        
+        #if !targetEnvironment(macCatalyst) && !os(macOS)
+        WidgetCenter.shared.reloadTimelines(ofKind: "Widget_2")
+        #endif
+    }
 }
 
-// A view model to represent a saved travel plan
 struct SavedTravelPlanViewModel: Identifiable {
     let id: String
     let location: String

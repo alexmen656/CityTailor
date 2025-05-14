@@ -7,7 +7,6 @@ class StoreManager: NSObject, ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    // Product IDs for your in-app purchases
     let productIDs = [
         "com.citytailor.premium.2.monthly",
         "com.citytailor.premium.2.yearly"
@@ -18,9 +17,20 @@ class StoreManager: NSObject, ObservableObject {
         Task {
             await loadProducts()
             await updatePurchasedProducts()
+            
+            DispatchQueue.main.async {
+                let isPremium = self.isPremium()
+                
+                if let sharedDefaults = UserDefaults(suiteName: "group.com.app.CityTailor") {
+                    sharedDefaults.set(isPremium, forKey: "is_premium_user")
+                    sharedDefaults.synchronize()
+                }
+                
+                let context = PersistenceController.shared.container.viewContext
+                TravelPlanStore.shared.updatePremiumWidgetData(context: context, isPremium: isPremium)
+            }
         }
-        
-        // Set up a transaction listener
+
         Task(priority: .background) {
             await listenForTransactions()
         }
@@ -60,10 +70,7 @@ class StoreManager: NSObject, ObservableObject {
                 continue
             }
             
-            // Update the purchased product IDs
             await processTransaction(transaction)
-            
-            // Always finish the transaction
             await transaction.finish()
         }
     }
@@ -71,11 +78,13 @@ class StoreManager: NSObject, ObservableObject {
     @MainActor
     func processTransaction(_ transaction: Transaction) async {
         if transaction.revocationDate == nil {
-            // Transaction is valid
             purchasedProductIDs.insert(transaction.productID)
+            let context = PersistenceController.shared.container.viewContext
+            TravelPlanStore.shared.updatePremiumWidgetData(context: context, isPremium: true)
         } else {
-            // Transaction was refunded or revoked
             purchasedProductIDs.remove(transaction.productID)
+            let context = PersistenceController.shared.container.viewContext
+            TravelPlanStore.shared.updatePremiumWidgetData(context: context, isPremium: false)
         }
     }
     
@@ -124,12 +133,10 @@ class StoreManager: NSObject, ObservableObject {
 }
 
 struct PremiumFeatures {
-    // Define premium features here
     static let unlimited = "Unbegrenzte Reisepläne"
     static let customization = "Benutzerdefinierte Reisepläne"
     static let aiSuggestions = "Verbesserte KI-Vorschläge"
     static let offlineAccess = "Offline-Zugriff"
     static let noAds = "Keine Werbung"
-    
     static let allFeatures = [unlimited, customization, aiSuggestions, offlineAccess, noAds]
 }

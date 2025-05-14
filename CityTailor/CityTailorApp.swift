@@ -14,6 +14,10 @@ struct CityTailorApp: App {
     @StateObject private var languageManager = LanguageManager()
     @StateObject private var appSettings = AppSettings()
     @State private var isFirstLaunch = !UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
+    
+    init() {
+        TravelPlanStore.shared.updateWidgetData(context: persistenceController.container.viewContext)
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -34,15 +38,11 @@ struct CityTailorApp: App {
         }
     }
     
-    private func synchronizeLanguageSettings() {
-        print("DEBUG: Synchronizing language settings on app start")
-        
+    private func synchronizeLanguageSettings() {        
         if UserDefaults.standard.string(forKey: "language") == nil {
-            print("DEBUG: No language in AppSettings, using LanguageManager's language: \(languageManager.currentLanguage.rawValue)")
             appSettings.language = languageManager.currentLanguage.rawValue
         } 
         else {
-            print("DEBUG: Using saved language from AppSettings: \(appSettings.language)")
             languageManager.setLanguage(LanguageManager.LanguageCode.from(displayName: appSettings.language))
         }
     }
