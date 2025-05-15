@@ -15,8 +15,8 @@
 		<string>MKDirectionsModeTrain</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Ihre Standortdaten werden benötigt, um Navigationsanweisungen zu Ihren Aktivitäten zu geben.</string>
+	<string>Your location data is needed to display your current position on the map and provide navigation directions to your activities.</string>
 	<key>NSLocationUsageDescription</key>
-	<string>Ihre Standortdaten werden benötigt, um Navigationsanweisungen zu Ihren Aktivitäten zu geben.</string>
+	<string>Your location data is needed to display your current position on the map and provide navigation directions to your activities.</string>
 </dict>
 </plist>

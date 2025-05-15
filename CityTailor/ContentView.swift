@@ -9,14 +9,20 @@ import SwiftUI
 import CoreData
 import MapKit
 import Combine
+import CoreLocation
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var languageManager: LanguageManager
     @EnvironmentObject private var storeManager: StoreManager
+    @StateObject private var locationManager = LocationManager()
+    
+    @State private var initialLocationSet = false
+    
     @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954), 
+        // Default to Berlin, will be updated with user location when available
+        center: CLLocationCoordinate2D(latitude: 52.520008, longitude: 13.404954),
         span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
     )
     @State private var searchText = ""
@@ -69,6 +75,25 @@ struct ContentView: View {
             .ignoresSafeArea(.keyboard)
         }
         .edgesIgnoringSafeArea(.bottom)
+        .onAppear {
+            // Update the map region when user location becomes available
+            if let location = locationManager.location {
+                region = MKCoordinateRegion(
+                    center: location.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+                )
+                initialLocationSet = true
+            }
+        }
+        .onChange(of: locationManager.location) { newLocation in
+            if let location = newLocation, !initialLocationSet && travelPlan == nil && mapAnnotations.isEmpty {
+                region = MKCoordinateRegion(
+                    center: location.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+                )
+                initialLocationSet = true
+            }
+        }
     }
     
     var mainView: some View {

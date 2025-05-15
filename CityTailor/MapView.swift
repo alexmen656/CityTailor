@@ -11,6 +11,8 @@ struct MapView: UIViewRepresentable {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         
+        mapView.showsUserLocation = true
+        
         mapView.register(
             MKMarkerAnnotationView.self,
             forAnnotationViewWithReuseIdentifier:MKMapViewDefaultAnnotationViewReuseIdentifier
@@ -26,6 +28,8 @@ struct MapView: UIViewRepresentable {
     
     func updateUIView(_ view: MKMapView, context: Context) {
         view.setRegion(region, animated: true)
+        
+        view.showsUserLocation = true
         
         applyMapSettings(to: view)
         
