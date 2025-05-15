@@ -5,6 +5,18 @@
 	<key>CFBundleDocumentTypes</key>
 	<array/>
 	<key>MKDirectionsApplicationSupportedModes</key>
-	<array/>
+	<array>
+		<string>MKDirectionsModeBus</string>
+		<string>MKDirectionsModeCar</string>
+		<string>MKDirectionsModeOther</string>
+		<string>MKDirectionsModePedestrian</string>
+		<string>MKDirectionsModeSubway</string>
+		<string>MKDirectionsModeTaxi</string>
+		<string>MKDirectionsModeTrain</string>
+	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Ihre Standortdaten werden benötigt, um Navigationsanweisungen zu Ihren Aktivitäten zu geben.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Ihre Standortdaten werden benötigt, um Navigationsanweisungen zu Ihren Aktivitäten zu geben.</string>
 </dict>
 </plist>

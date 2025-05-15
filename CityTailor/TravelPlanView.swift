@@ -235,7 +235,9 @@ struct TravelPlanView: View {
                 }
             }
             .sheet(isPresented: $showEmptyDetailView) {
-                EmptyDetailView(activity: selectedActivity)
+                if let activity = selectedActivity {
+                    EmptyDetailView(activity: activity)
+                }
             }
         }
     }
@@ -426,27 +428,6 @@ struct TravelPlanView: View {
             }
         }
         #endif
-    }
-}
-
-struct EmptyDetailView: View {
-    var activity: Activity?
-    @Environment(\.presentationMode) var presentationMode
-    
-    var body: some View {
-        NavigationView {
-            VStack {
-                Spacer()
-                Text("Detailansicht")
-                    .font(.title)
-                    .padding()
-                Spacer()
-            }
-            .navigationBarItems(trailing: Button("Schließen") {
-                presentationMode.wrappedValue.dismiss()
-            })
-            .navigationTitle(activity?.title ?? "Details")
-        }
     }
 }
 
