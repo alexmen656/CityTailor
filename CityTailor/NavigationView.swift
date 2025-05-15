@@ -6,6 +6,7 @@ struct EmptyDetailView: View {
     var activity: Activity
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject private var languageManager: LanguageManager
     @State private var region = MKCoordinateRegion()
     @State private var userLocation: CLLocationCoordinate2D?
     @State private var destinationLocation: CLLocationCoordinate2D?
@@ -88,7 +89,7 @@ struct EmptyDetailView: View {
                     }) {
                         HStack(spacing: 8) {
                             Image(systemName: "location.fill")
-                            Text("Navigate")
+                            Text(languageManager.localize("navigate"))
                                 .fontWeight(.medium)
                         }
                         .frame(maxWidth: .infinity)
@@ -133,7 +134,7 @@ struct EmptyDetailView: View {
                                 }
                                 
                                 HStack {
-                                    Text("Fastest")
+                                    Text(languageManager.localize("fastest"))
                                         .font(.subheadline)
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 4)
@@ -141,7 +142,7 @@ struct EmptyDetailView: View {
                                         .foregroundColor(.white)
                                         .cornerRadius(4)
                                     
-                                    Text("ETA \(formatETA(Date().addingTimeInterval(route.expectedTravelTime)))")
+                                    Text("\(languageManager.localize("eta")) \(formatETA(Date().addingTimeInterval(route.expectedTravelTime)))")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
@@ -162,18 +163,18 @@ struct EmptyDetailView: View {
                             ScrollView {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {
-                                        Text("Directions")
+                                        Text(languageManager.localize("directions"))
                                             .font(.headline)
                                             .foregroundColor(.primary)
                                         Spacer()
-                                        Text("\(routeSteps.count) steps")
+                                        Text("\(routeSteps.count) \(languageManager.localize("steps"))")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
                                     .padding(.vertical, 4)
                                     
                                     if routeSteps.isEmpty {
-                                        Text("No directions available")
+                                        Text(languageManager.localize("no_directions_available"))
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                             .padding(.vertical, 8)
@@ -265,9 +266,9 @@ struct EmptyDetailView: View {
             set: { if !$0 { errorMessage = nil } }
         )) {
             Alert(
-                title: Text("Directions Not Available"),
+                title: Text(languageManager.localize("directions_not_available")),
                 message: Text(errorMessage ?? ""),
-                dismissButton: .default(Text("OK"))
+                dismissButton: .default(Text(languageManager.localize("ok")))
             )
         }
     }
@@ -307,12 +308,7 @@ struct EmptyDetailView: View {
         
         if selectedTransportType == .transit {
             isLoadingRoute = false
-            errorMessage = "ÖPNV-Navigation: Coming Soon!\n\nDiese Funktion wird in einem zukünftigen Update verfügbar sein."
-            
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                
-            }
+            errorMessage = "\(languageManager.localize("transit_coming_soon"))\n\n\(languageManager.localize("transit_future_update"))"
             return
         }
         
@@ -339,13 +335,13 @@ struct EmptyDetailView: View {
             isLoadingRoute = false
             
             if let error = error as NSError? {
-                self.errorMessage = "Fehler bei der Routenberechnung: \(error.localizedDescription)"
+                self.errorMessage = "\(languageManager.localize("route_calculation_error")) \(error.localizedDescription)"
                 print(self.errorMessage ?? "")
                 return
             }
             
             guard let response = response, let route = response.routes.first else {
-                self.errorMessage = "Keine Route gefunden"
+                self.errorMessage = languageManager.localize("no_route_found")
                 print(self.errorMessage ?? "")
                 return
             }

@@ -244,7 +244,21 @@ class LanguageManager: ObservableObject {
                 
                 // Premium Feature
                 "support_future_development": "Unterstütze zukünftige Entwicklung",
-                "premium_feature": "Premium-Funktion"
+                "premium_feature": "Premium-Funktion",
+                
+                // Navigation
+                "navigate": "Navigieren",
+                "fastest": "Schnellste",
+                "eta": "ETA",
+                "directions": "Wegbeschreibung",
+                "steps": "Schritte",
+                "no_directions_available": "Keine Wegbeschreibung verfügbar",
+                "directions_not_available": "Wegbeschreibung nicht verfügbar",
+                "transit_coming_soon": "Öffentlicher Nahverkehr: Bald verfügbar!",
+                "transit_future_update": "Diese Funktion wird in einem zukünftigen Update verfügbar sein.",
+                "route_calculation_error": "Fehler bei der Routenberechnung:",
+                "no_route_found": "Keine Route gefunden",
+                "multiple_activities_nearby": "Mehrere Aktivitäten in der Nähe"
             ]
         case .en:
             return [
@@ -390,7 +404,21 @@ class LanguageManager: ObservableObject {
                 
                 // Premium Feature
                 "support_future_development": "Support Future Development",
-                "premium_feature": "Premium Feature"
+                "premium_feature": "Premium Feature",
+                
+                // Navigation
+                "navigate": "Navigate",
+                "fastest": "Fastest",
+                "eta": "ETA",
+                "directions": "Directions",
+                "steps": "steps",
+                "no_directions_available": "No directions available",
+                "directions_not_available": "Directions Not Available",
+                "transit_coming_soon": "Public Transit Navigation: Coming Soon!",
+                "transit_future_update": "This feature will be available in a future update.",
+                "route_calculation_error": "Error calculating route:",
+                "no_route_found": "No route found",
+                "multiple_activities_nearby": "Multiple activities nearby"
             ]
         case .fr:
             return [
@@ -536,7 +564,21 @@ class LanguageManager: ObservableObject {
                 
                 // Premium Feature
                 "support_future_development": "Soutenir le développement futur",
-                "premium_feature": "Fonctionnalité Premium"
+                "premium_feature": "Fonctionnalité Premium",
+                
+                // Navigation
+                "navigate": "Naviguer",
+                "fastest": "Le plus rapide",
+                "eta": "ETA",
+                "directions": "Itinéraire",
+                "steps": "étapes",
+                "no_directions_available": "Aucun itinéraire disponible",
+                "directions_not_available": "Itinéraire non disponible",
+                "transit_coming_soon": "Navigation en transport en commun : Bientôt disponible !",
+                "transit_future_update": "Cette fonctionnalité sera disponible dans une mise à jour future.",
+                "route_calculation_error": "Erreur de calcul de l'itinéraire :",
+                "no_route_found": "Aucun itinéraire trouvé",
+                "multiple_activities_nearby": "Activités multiples à proximité"
             ]
         case .es:
             return [
@@ -682,7 +724,21 @@ class LanguageManager: ObservableObject {
                 
                 // Premium Feature
                 "support_future_development": "Apoyo al desarrollo futuro",
-                "premium_feature": "Función Premium"
+                "premium_feature": "Función Premium",
+                
+                // Navigation
+                "navigate": "Navegar",
+                "fastest": "Más rápido",
+                "eta": "ETA",
+                "directions": "Direcciones",
+                "steps": "pasos",
+                "no_directions_available": "No hay direcciones disponibles",
+                "directions_not_available": "Direcciones no disponibles",
+                "transit_coming_soon": "Navegación en transporte público: ¡Próximamente!",
+                "transit_future_update": "Esta función estará disponible en una actualización futura.",
+                "route_calculation_error": "Error al calcular la ruta:",
+                "no_route_found": "No se encontró ninguna ruta",
+                "multiple_activities_nearby": "Múltiples actividades cercanas"
             ]
         case .it:
             return [
@@ -828,7 +884,21 @@ class LanguageManager: ObservableObject {
                 
                 // Premium Feature
                 "support_future_development": "Supporto allo sviluppo futuro",
-                "premium_feature": "Funzionalità Premium"
+                "premium_feature": "Funzionalità Premium",
+                
+                // Navigation
+                "navigate": "Naviga",
+                "fastest": "Più veloce",
+                "eta": "ETA",
+                "directions": "Indicazioni",
+                "steps": "passi",
+                "no_directions_available": "Nessuna indicazione disponibile",
+                "directions_not_available": "Indicazioni non disponibili",
+                "transit_coming_soon": "Navigazione con trasporto pubblico: In arrivo!",
+                "transit_future_update": "Questa funzione sarà disponibile in un futuro aggiornamento.",
+                "route_calculation_error": "Errore nel calcolo del percorso:",
+                "no_route_found": "Nessun percorso trovato",
+                "multiple_activities_nearby": "Molteplici attività nelle vicinanze"
             ]
         }
     }

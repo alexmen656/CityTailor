@@ -6,6 +6,7 @@ struct MapView: UIViewRepresentable {
     var annotations: [MapAnnotation] = []
     var selectedAnnotation: MapAnnotation? = nil
     @EnvironmentObject private var settings: AppSettings
+    var languageManager: LanguageManager
     
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -164,7 +165,7 @@ struct MapView: UIViewRepresentable {
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        return Coordinator(self, languageManager: languageManager)
     }
     
     class CustomPointAnnotation: MKPointAnnotation {
@@ -175,9 +176,12 @@ struct MapView: UIViewRepresentable {
     
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: MapView
+        var languageManager: LanguageManager
         
-        init(_ parent: MapView) {
+        init(_ parent: MapView, languageManager: LanguageManager) {
             self.parent = parent
+            self.languageManager = languageManager
+            super.init()
         }
         
         func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
@@ -212,11 +216,13 @@ struct MapView: UIViewRepresentable {
                 clusterView?.layer.speed = 0.99999
 
                 let count = cluster.memberAnnotations.count
-                cluster.title = "\(count) " + (count == 1 ? "Aktivität" : "Aktivitäten")
+                let activityText = count == 1 ? 
+                    languageManager.localize("activity") : 
+                    languageManager.localize("activities")
+                cluster.title = "\(count) \(activityText)"
                 
-                if let firstAnnotation = cluster.memberAnnotations.first as? CustomPointAnnotation,
-                   let title = firstAnnotation.title {
-                    cluster.subtitle = "Mehrere Aktivitäten in der Nähe"
+                if let firstAnnotation = cluster.memberAnnotations.first as? CustomPointAnnotation {
+                    cluster.subtitle = languageManager.localize("multiple_activities_nearby")
                 }
                 
                 clusterView?.canShowCallout = true
@@ -262,8 +268,7 @@ struct MapView: UIViewRepresentable {
         
         func mapView(_ mapView: MKMapView, annotationView view: MKAnnotationView, calloutAccessoryControlTapped control: UIControl) {
             if let annotation = view.annotation, let title = annotation.title {
-                print("Info-Button wurde geklickt für: \(title ?? "Unbekannt")")
-                
+                print("Info-Button clicked for: \(title ?? "Unknown")")
             }
         }
     }

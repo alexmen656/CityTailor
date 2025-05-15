@@ -101,7 +101,8 @@ struct ContentView: View {
             MapView(
                 region: $region,
                 annotations: mapAnnotations,
-                selectedAnnotation: selectedAnnotation
+                selectedAnnotation: selectedAnnotation,
+                languageManager: languageManager
             )
             .environmentObject(settings)
             .edgesIgnoringSafeArea(.all)
