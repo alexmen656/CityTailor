@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreLocation
+import MapKit  // Added MapKit import to access MKMapItem
 
 enum TransportationType: String, CaseIterable, Codable {
     case walking = "transport_type_walking"
@@ -195,12 +196,16 @@ struct MapAnnotation: Identifiable {
     let subtitle: String?
     let coordinate: CLLocationCoordinate2D
     let activityInfo: Activity?
+    let useAppleMapsStyle: Bool
+    let mapItem: MKMapItem?
     
-    init(title: String, subtitle: String? = nil, coordinate: CLLocationCoordinate2D, activityInfo: Activity? = nil) {
+    init(title: String, subtitle: String? = nil, coordinate: CLLocationCoordinate2D, activityInfo: Activity? = nil, useAppleMapsStyle: Bool = false, mapItem: MKMapItem? = nil) {
         self.title = title
         self.subtitle = subtitle
         self.coordinate = coordinate
         self.activityInfo = activityInfo
+        self.useAppleMapsStyle = useAppleMapsStyle
+        self.mapItem = mapItem
     }
 }
 

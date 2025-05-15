@@ -3,20 +3,20 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDocumentTypes</key>
-	<array/>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>MKDirectionsRequest</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.apple.maps.directionsrequest</string>
+			</array>
+		</dict>
+	</array>
 	<key>MKDirectionsApplicationSupportedModes</key>
 	<array>
-		<string>MKDirectionsModeBus</string>
 		<string>MKDirectionsModeCar</string>
-		<string>MKDirectionsModeOther</string>
 		<string>MKDirectionsModePedestrian</string>
-		<string>MKDirectionsModeSubway</string>
-		<string>MKDirectionsModeTaxi</string>
-		<string>MKDirectionsModeTrain</string>
 	</array>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Your location data is needed to display your current position on the map and provide navigation directions to your activities.</string>
-	<key>NSLocationUsageDescription</key>
-	<string>Your location data is needed to display your current position on the map and provide navigation directions to your activities.</string>
 </dict>
 </plist>

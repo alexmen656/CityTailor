@@ -128,6 +128,11 @@ struct MapView: UIViewRepresentable {
                     pin.subtitle = annotation.subtitle
                     pin.activityInfo = annotation.activityInfo
                     pin.clusteringIdentifier = "ActivityCluster"
+                    
+                    
+                    pin.useAppleMapsStyle = annotation.useAppleMapsStyle
+                    pin.mapItem = annotation.mapItem
+                    
                     view.addAnnotation(pin)
                 }
             } else if isZoomedIn {
@@ -148,6 +153,11 @@ struct MapView: UIViewRepresentable {
                     pin.activityInfo = annotation.activityInfo
                     pin.originalCoordinate = baseCoordinate 
                     pin.clusteringIdentifier = "ActivityCluster"
+                    
+                    
+                    pin.useAppleMapsStyle = annotation.useAppleMapsStyle
+                    pin.mapItem = annotation.mapItem
+                    
                     view.addAnnotation(pin)
                 }
             } else {
@@ -158,6 +168,11 @@ struct MapView: UIViewRepresentable {
                     pin.subtitle = annotation.subtitle
                     pin.activityInfo = annotation.activityInfo
                     pin.clusteringIdentifier = "ActivityCluster"
+                    
+                    
+                    pin.useAppleMapsStyle = annotation.useAppleMapsStyle
+                    pin.mapItem = annotation.mapItem
+                    
                     view.addAnnotation(pin)
                 }
             }
@@ -172,6 +187,8 @@ struct MapView: UIViewRepresentable {
         var activityInfo: Activity?
         var clusteringIdentifier: String?
         var originalCoordinate: CLLocationCoordinate2D?
+        var useAppleMapsStyle: Bool = false
+        var mapItem: MKMapItem?
     }
     
     class Coordinator: NSObject, MKMapViewDelegate {
@@ -230,37 +247,107 @@ struct MapView: UIViewRepresentable {
             }
             
             if let customAnnotation = annotation as? CustomPointAnnotation {
-                let identifier = "ActivityPin"
-                var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
                 
-                if annotationView == nil {
-                    annotationView = MKMarkerAnnotationView(annotation: customAnnotation, reuseIdentifier: identifier)
-                    annotationView?.canShowCallout = true
+                if customAnnotation.useAppleMapsStyle, let mapItem = customAnnotation.mapItem {
+                    print("🍎 DEBUG: Using Apple Maps POI styling for: \(customAnnotation.title ?? "Unknown")")
                     
-                    let infoButton = UIButton(type: .detailDisclosure)
-                    annotationView?.rightCalloutAccessoryView = infoButton
-                } else {
-                    annotationView?.annotation = customAnnotation
-                }
-                
-                annotationView?.clusteringIdentifier = "ActivityCluster"
-                annotationView?.displayPriority = .required
-                
-                if let title = customAnnotation.title {
-                    if title.contains("Museum") {
-                        annotationView?.markerTintColor = .purple 
-                    } else if title.contains("Essen") || title.contains("Restaurant") {
-                        annotationView?.markerTintColor = .red 
-                    } else if title.contains("Park") || title.contains("Natur") {
-                        annotationView?.markerTintColor = .green 
-                    } else if title.contains("Shopping") || title.contains("Markt") {
-                        annotationView?.markerTintColor = .orange 
+                    
+                    let identifier = "ApplePOIPin"
+                    var poiView: MKAnnotationView
+                    
+                    if let view = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) {
+                        poiView = view
+                        poiView.annotation = customAnnotation
                     } else {
-                        annotationView?.markerTintColor = .blue 
+                        poiView = MKAnnotationView(annotation: customAnnotation, reuseIdentifier: identifier)
                     }
+                    
+                    
+                    if let pointOfInterestCategory = mapItem.pointOfInterestCategory {
+                        poiView.canShowCallout = true
+                        
+                        
+                        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
+                        var symbolName: String
+                        
+                        switch pointOfInterestCategory {
+                        case .restaurant, .bakery, .foodMarket, .cafe:
+                            symbolName = "fork.knife"
+                            poiView.tintColor = .systemRed
+                        case .hotel:
+                            symbolName = "bed.double.fill"
+                            poiView.tintColor = .systemOrange
+                        case .museum, .theater, .movieTheater:
+                            symbolName = "building.columns.fill"
+                            poiView.tintColor = .systemPurple
+                        case .park, .nationalPark, .beach:
+                            symbolName = "leaf.fill"
+                            poiView.tintColor = .systemGreen
+                        case .store:  
+                            symbolName = "bag.fill"
+                            poiView.tintColor = .systemBrown
+                        default:
+                            symbolName = "mappin"
+                            poiView.tintColor = .systemBlue
+                        }
+                        
+                        poiView.image = UIImage(systemName: symbolName, withConfiguration: config)?.withTintColor(poiView.tintColor, renderingMode: .alwaysOriginal)
+                        
+                        
+                        let infoButton = UIButton(type: .detailDisclosure)
+                        poiView.rightCalloutAccessoryView = infoButton
+                        
+                        
+                        let directionsButton = UIButton(type: .system)
+                        directionsButton.setImage(UIImage(systemName: "location.fill"), for: .normal)
+                        poiView.leftCalloutAccessoryView = directionsButton
+                        
+                        poiView.displayPriority = .required
+                    } else {
+                        
+                        let markerView = MKMarkerAnnotationView(annotation: customAnnotation, reuseIdentifier: "DefaultMarker")
+                        markerView.markerTintColor = .systemBlue
+                        markerView.canShowCallout = true
+                        markerView.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
+                        markerView.displayPriority = .required
+                        return markerView
+                    }
+                    
+                    return poiView
+                } else {
+                    
+                    let identifier = "ActivityPin"
+                    var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? MKMarkerAnnotationView
+                    
+                    if annotationView == nil {
+                        annotationView = MKMarkerAnnotationView(annotation: customAnnotation, reuseIdentifier: identifier)
+                        annotationView?.canShowCallout = true
+                        
+                        let infoButton = UIButton(type: .detailDisclosure)
+                        annotationView?.rightCalloutAccessoryView = infoButton
+                    } else {
+                        annotationView?.annotation = customAnnotation
+                    }
+                    
+                    annotationView?.clusteringIdentifier = "ActivityCluster"
+                    annotationView?.displayPriority = .required
+                    
+                    if let title = customAnnotation.title {
+                        if title.contains("Museum") {
+                            annotationView?.markerTintColor = .purple 
+                        } else if title.contains("Essen") || title.contains("Restaurant") {
+                            annotationView?.markerTintColor = .red 
+                        } else if title.contains("Park") || title.contains("Natur") {
+                            annotationView?.markerTintColor = .green 
+                        } else if title.contains("Shopping") || title.contains("Markt") {
+                            annotationView?.markerTintColor = .orange 
+                        } else {
+                            annotationView?.markerTintColor = .blue 
+                        }
+                    }
+                    
+                    return annotationView
                 }
-                
-                return annotationView
             }
             
             return nil
