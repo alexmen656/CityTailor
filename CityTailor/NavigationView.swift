@@ -15,6 +15,8 @@ struct EmptyDetailView: View {
     @State private var routeSteps: [String] = []
     @State private var showingRouteDetails = false
     @State private var isLoadingRoute = false
+    @State private var selectedTransportType: MKDirectionsTransportType = .automobile
+    @State private var errorMessage: String? = nil
     
     var body: some View {
         ZStack {
@@ -49,7 +51,7 @@ struct EmptyDetailView: View {
                     Spacer()
                     
                     
-                    Button(action: {
+                  /*  Button(action: {
                         
                     }) {
                         Text("3D")
@@ -61,7 +63,7 @@ struct EmptyDetailView: View {
                                     .shadow(color: Color.black.opacity(0.15), radius: 2, x: 0, y: 1)
                             )
                             .foregroundColor(colorScheme == .dark ? .white : .primary)
-                    }
+                    }*/
                 }
                 .padding(.horizontal)
                 .padding(.top, 10)
@@ -148,18 +150,8 @@ struct EmptyDetailView: View {
                             Spacer()
                             
                             
-                            Button(action: {}) {
-                                Text("GO")
-                                    .font(.title3.bold())
-                                    .foregroundColor(.white)
-                                    .frame(width: 70, height: 70)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .fill(Color.green)
-                                    )
-                            }
                         }
-                        .padding(.bottom, 16)
+                        .padding(.bottom, 8) 
                         .padding(.horizontal)
                         
                         
@@ -168,64 +160,85 @@ struct EmptyDetailView: View {
                                 .padding(.horizontal)
                             
                             ScrollView {
-                                VStack(alignment: .leading, spacing: 15) {
-                                    
-                                    HStack(spacing: 12) {
-                                        VStack(alignment: .center, spacing: 0) {
-                                            Circle()
-                                                .fill(Color.blue)
-                                                .frame(width: 12, height: 12)
-                                            
-                                            Rectangle()
-                                                .fill(Color.gray.opacity(0.5))
-                                                .frame(width: 2, height: 40)
-                                            
-                                            Image(systemName: "mappin.circle.fill")
-                                                .font(.system(size: 20))
-                                                .foregroundColor(.red)
-                                        }
-                                        .frame(width: 20)
-                                        
-                                        VStack(alignment: .leading, spacing: 30) {
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                Text("My Location")
-                                                    .font(.subheadline)
-                                                    .foregroundColor(.blue)
-                                            }
-                                            
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                Text(activity.title)
-                                                    .font(.subheadline)
-                                                Text(activity.displayAddress)
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
-                                            }
-                                        }
-                                        
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text("Directions")
+                                            .font(.headline)
+                                            .foregroundColor(.primary)
                                         Spacer()
+                                        Text("\(routeSteps.count) steps")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
                                     }
-                                    .padding(.vertical, 8)
+                                    .padding(.vertical, 4)
                                     
-                                    Button(action: {}) {
-                                        Text("Add Stop")
-                                            .foregroundColor(.blue)
+                                    if routeSteps.isEmpty {
+                                        Text("No directions available")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                            .padding(.vertical, 8)
+                                    } else {
+                                        ForEach(Array(routeSteps.enumerated()), id: \.1) { index, step in
+                                            HStack(alignment: .top, spacing: 12) {
+                                                Text("\(index + 1)")
+                                                    .font(.caption)
+                                                    .foregroundColor(.white)
+                                                    .frame(width: 22, height: 22)
+                                                    .background(Circle().fill(Color.blue))
+                                                
+                                                Text(step)
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.primary)
+                                                    .fixedSize(horizontal: false, vertical: true)
+                                                
+                                                Spacer()
+                                            }
+                                            .padding(.vertical, 4)
+                                            
+                                            if index < routeSteps.count - 1 {
+                                                Divider()
+                                                    .padding(.leading, 34)
+                                            }
+                                        }
                                     }
-                                    .padding(.vertical, 8)
                                 }
                                 .padding(.horizontal)
                             }
-                            .frame(height: 120)
+                            .frame(height: 200)
                             
                             
                             HStack(spacing: 0) {
-                                ForEach(["car", "figure.walk", "tram", "bicycle", "figure.wave"], id: \.self) { icon in
-                                    Button(action: {}) {
+                                ForEach(["car", "figure.walk", "tram"], id: \.self) { icon in
+                                    Button(action: {
+                                        let newTransportType: MKDirectionsTransportType
+                                        switch icon {
+                                        case "car":
+                                            newTransportType = .automobile
+                                        case "figure.walk":
+                                            newTransportType = .walking
+                                        case "tram":
+                                            newTransportType = .transit
+                                        default:
+                                            newTransportType = .automobile
+                                        }
+                                        
+                                        if newTransportType != selectedTransportType {
+                                            selectedTransportType = newTransportType
+                                            calculateDirections()
+                                        }
+                                    }) {
                                         Image(systemName: icon)
                                             .font(.system(size: 20))
-                                            .foregroundColor(icon == "car" ? .white : (colorScheme == .dark ? .white : .primary))
+                                            .foregroundColor((selectedTransportType == .automobile && icon == "car") || 
+                                                             (selectedTransportType == .walking && icon == "figure.walk") ||
+                                                             (selectedTransportType == .transit && icon == "tram") 
+                                                              ? .white : (colorScheme == .dark ? .white : .primary))
                                             .frame(maxWidth: .infinity)
                                             .padding(.vertical, 18)
-                                            .background(icon == "car" ? Color.blue : Color.clear)
+                                            .background((selectedTransportType == .automobile && icon == "car") || 
+                                                        (selectedTransportType == .walking && icon == "figure.walk") ||
+                                                        (selectedTransportType == .transit && icon == "tram")
+                                                         ? Color.blue : Color.clear)
                                     }
                                 }
                             }
@@ -247,6 +260,16 @@ struct EmptyDetailView: View {
             setupMap()
         }
         .navigationBarHidden(true)
+        .alert(isPresented: Binding<Bool>(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Alert(
+                title: Text("Directions Not Available"),
+                message: Text(errorMessage ?? ""),
+                dismissButton: .default(Text("OK"))
+            )
+        }
     }
     
     private func formatETA(_ date: Date) -> String {
@@ -281,6 +304,18 @@ struct EmptyDetailView: View {
     }
     
     private func calculateDirections() {
+        
+        if selectedTransportType == .transit {
+            isLoadingRoute = false
+            errorMessage = "ÖPNV-Navigation: Coming Soon!\n\nDiese Funktion wird in einem zukünftigen Update verfügbar sein."
+            
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                
+            }
+            return
+        }
+        
         guard let userLocation = locationManager.location?.coordinate else {
             print("User location not available")
             return
@@ -292,18 +327,26 @@ struct EmptyDetailView: View {
         }
         
         isLoadingRoute = true
+        errorMessage = nil
         
         let request = MKDirections.Request()
         request.source = MKMapItem(placemark: MKPlacemark(coordinate: userLocation))
         request.destination = MKMapItem(placemark: MKPlacemark(coordinate: destinationLocation))
-        request.transportType = .automobile
+        request.transportType = selectedTransportType
         
         let directions = MKDirections(request: request)
         directions.calculate { response, error in
             isLoadingRoute = false
             
-            guard let response = response, let route = response.routes.first, error == nil else {
-                print("Error calculating directions: \(error?.localizedDescription ?? "Unknown error")")
+            if let error = error as NSError? {
+                self.errorMessage = "Fehler bei der Routenberechnung: \(error.localizedDescription)"
+                print(self.errorMessage ?? "")
+                return
+            }
+            
+            guard let response = response, let route = response.routes.first else {
+                self.errorMessage = "Keine Route gefunden"
+                print(self.errorMessage ?? "")
                 return
             }
             
