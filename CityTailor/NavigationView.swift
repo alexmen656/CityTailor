@@ -5,6 +5,7 @@ import CoreLocation
 struct EmptyDetailView: View {
     var activity: Activity
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.colorScheme) var colorScheme
     @State private var region = MKCoordinateRegion()
     @State private var userLocation: CLLocationCoordinate2D?
     @State private var destinationLocation: CLLocationCoordinate2D?
@@ -16,94 +17,245 @@ struct EmptyDetailView: View {
     @State private var isLoadingRoute = false
     
     var body: some View {
-        VStack {
-            Map(coordinateRegion: $region, showsUserLocation: true, 
-                annotationItems: [LocationAnnotation(coordinate: destinationLocation ?? CLLocationCoordinate2D())]) { annotation in
-                MapMarker(coordinate: annotation.coordinate, tint: .red)
-            }
-            .overlay(
-                Group {
-                    if let route = route {
-                        RouteMapView(route: route)
-                    }
+        ZStack {
+            
+            if let route = route {
+                RouteMapView(route: route)
+                    .ignoresSafeArea(.all)
+            } else {
+                Map(coordinateRegion: $region, showsUserLocation: true, 
+                    annotationItems: [LocationAnnotation(coordinate: destinationLocation ?? CLLocationCoordinate2D())]) { annotation in
+                    MapMarker(coordinate: annotation.coordinate, tint: .red)
                 }
-            )
-            .edgesIgnoringSafeArea(.all)
-            .onAppear {
-                setupMap()
+                .ignoresSafeArea(.all)
             }
             
-            VStack(spacing: 20) {
-                Text(activity.title)
-                    .font(.title)
-                    .fontWeight(.bold)
+            VStack {     
+                HStack {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.title3)
+                            .padding(12)
+                            .background(
+                                Circle()
+                                    .fill(colorScheme == .dark ? Color(.systemGray5) : Color.white)
+                                    .shadow(color: Color.black.opacity(0.15), radius: 2, x: 0, y: 1)
+                            )
+                            .foregroundColor(colorScheme == .dark ? .white : .primary)
+                    }
+                    
+                    Spacer()
+                    
+                    
+                    Button(action: {
+                        
+                    }) {
+                        Text("3D")
+                            .font(.system(size: 16, weight: .medium))
+                            .padding(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(colorScheme == .dark ? Color(.systemGray5) : Color.white)
+                                    .shadow(color: Color.black.opacity(0.15), radius: 2, x: 0, y: 1)
+                            )
+                            .foregroundColor(colorScheme == .dark ? .white : .primary)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 10)
                 
-                Text(activity.mapAddress)
-                    .font(.subheadline)
+                Spacer()
+                
                 
                 if isLoadingRoute {
-                    ProgressView("Calculating route...")
-                } else {
+                    
+                    ProgressView()
+                        .padding(15)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(colorScheme == .dark ? Color(.systemGray5) : Color.white)
+                                .shadow(color: Color.black.opacity(0.1), radius: 3, x: 0, y: 2)
+                        )
+                        .padding(.bottom, 25)
+                } else if !showingRouteDetails {
+                    
                     Button(action: {
                         calculateDirections()
                     }) {
-                        HStack {
-                            Image(systemName: "map.fill")
-                            Text("Show Directions")
+                        HStack(spacing: 8) {
+                            Image(systemName: "location.fill")
+                            Text("Navigate")
+                                .fontWeight(.medium)
                         }
-                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
                         .background(Color.blue)
                         .foregroundColor(.white)
-                        .cornerRadius(10)
+                        .cornerRadius(30)
+                        .shadow(color: Color.black.opacity(0.15), radius: 3, x: 0, y: 2)
+                        .padding(.horizontal, 40)
                     }
+                    .padding(.bottom, 25)
                 }
                 
+                
                 if showingRouteDetails, let route = route {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("ETA: \(formatTimeInterval(route.expectedTravelTime))")
-                            .font(.headline)
-                        Text("Distance: \(formatDistance(route.distance))")
-                            .font(.headline)
+                    VStack(alignment: .leading, spacing: 0) {
                         
-                        Divider()
+                        HStack {
+                            Spacer()
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.5))
+                                .frame(width: 36, height: 5)
+                                .cornerRadius(2.5)
+                            Spacer()
+                        }
+                        .padding(.top, 6)
+                        .padding(.bottom, 10)
                         
-                        Text("Directions:")
-                            .font(.headline)
                         
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 8) {
-                                ForEach(routeSteps.indices, id: \.self) { index in
-                                    HStack(alignment: .top) {
-                                        Text("\(index + 1).")
-                                            .font(.subheadline)
-                                            .frame(width: 25, alignment: .leading)
-                                        Text(routeSteps[index])
-                                            .font(.subheadline)
-                                    }
-                                    .padding(.vertical, 2)
+                        HStack {
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(alignment: .firstTextBaseline) {
+                                    Text(formatTimeInterval(route.expectedTravelTime))
+                                        .font(.system(size: 32, weight: .bold))
+                                    
+                                    Spacer()
+                                    
+                                    Text(formatDistance(route.distance))
+                                        .font(.headline)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                HStack {
+                                    Text("Fastest")
+                                        .font(.subheadline)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(4)
+                                    
+                                    Text("ETA \(formatETA(Date().addingTimeInterval(route.expectedTravelTime)))")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
                                 }
                             }
+                            
+                            Spacer()
+                            
+                            
+                            Button(action: {}) {
+                                Text("GO")
+                                    .font(.title3.bold())
+                                    .foregroundColor(.white)
+                                    .frame(width: 70, height: 70)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(Color.green)
+                                    )
+                            }
                         }
-                        .frame(maxHeight: 200)
+                        .padding(.bottom, 16)
+                        .padding(.horizontal)
+                        
+                        
+                        if showingRouteDetails {
+                            Divider()
+                                .padding(.horizontal)
+                            
+                            ScrollView {
+                                VStack(alignment: .leading, spacing: 15) {
+                                    
+                                    HStack(spacing: 12) {
+                                        VStack(alignment: .center, spacing: 0) {
+                                            Circle()
+                                                .fill(Color.blue)
+                                                .frame(width: 12, height: 12)
+                                            
+                                            Rectangle()
+                                                .fill(Color.gray.opacity(0.5))
+                                                .frame(width: 2, height: 40)
+                                            
+                                            Image(systemName: "mappin.circle.fill")
+                                                .font(.system(size: 20))
+                                                .foregroundColor(.red)
+                                        }
+                                        .frame(width: 20)
+                                        
+                                        VStack(alignment: .leading, spacing: 30) {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text("My Location")
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.blue)
+                                            }
+                                            
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(activity.title)
+                                                    .font(.subheadline)
+                                                Text(activity.displayAddress)
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(.vertical, 8)
+                                    
+                                    Button(action: {}) {
+                                        Text("Add Stop")
+                                            .foregroundColor(.blue)
+                                    }
+                                    .padding(.vertical, 8)
+                                }
+                                .padding(.horizontal)
+                            }
+                            .frame(height: 120)
+                            
+                            
+                            HStack(spacing: 0) {
+                                ForEach(["car", "figure.walk", "tram", "bicycle", "figure.wave"], id: \.self) { icon in
+                                    Button(action: {}) {
+                                        Image(systemName: icon)
+                                            .font(.system(size: 20))
+                                            .foregroundColor(icon == "car" ? .white : (colorScheme == .dark ? .white : .primary))
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 18)
+                                            .background(icon == "car" ? Color.blue : Color.clear)
+                                    }
+                                }
+                            }
+                            .background(colorScheme == .dark ? Color(.systemGray6) : Color(.systemGray6))
+                        }
                     }
-                    .padding()
-                    .background(Color.white.opacity(0.9))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
+                    .background(
+                        Rectangle()
+                            .fill(colorScheme == .dark ? Color(.systemGray6) : Color.white)
+                            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.1), radius: 5, y: -2)
+                            .edgesIgnoringSafeArea(.bottom)
+                    )
                 }
             }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(15)
-            .shadow(radius: 5)
-            .padding()
+            .animation(.spring(), value: showingRouteDetails)
+            .animation(.easeInOut, value: isLoadingRoute)
         }
-        .navigationTitle("Directions")
-        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            setupMap()
+        }
+        .navigationBarHidden(true)
+    }
+    
+    private func formatETA(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
     }
     
     private func setupMap() {
-        
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(activity.mapAddress) { placemarks, error in
             guard error == nil else {
@@ -119,13 +271,11 @@ struct EmptyDetailView: View {
             
             destinationLocation = location
             
-            
             region = MKCoordinateRegion(
                 center: location,
                 span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
             )
         }
-        
         
         userLocation = locationManager.location?.coordinate
     }
@@ -160,10 +310,8 @@ struct EmptyDetailView: View {
             self.route = route
             self.routeSteps = route.steps.map { $0.instructions }.filter { !$0.isEmpty }
             
-            
             let rect = route.polyline.boundingMapRect
             self.region = MKCoordinateRegion(rect)
-            
             
             self.showingRouteDetails = true
         }
@@ -183,11 +331,9 @@ struct EmptyDetailView: View {
     }
     
     private func getDirections() {
-        
         calculateDirections()
     }
 }
-
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
@@ -218,9 +364,7 @@ struct RouteMapView: UIViewRepresentable {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         
-        
         mapView.addOverlay(route.polyline)
-        
         
         if let destinationCoordinate = route.steps.last?.polyline.coordinate {
             let annotation = MKPointAnnotation()
@@ -228,9 +372,7 @@ struct RouteMapView: UIViewRepresentable {
             mapView.addAnnotation(annotation)
         }
         
-        
         mapView.showsUserLocation = true
-        
         
         mapView.setVisibleMapRect(route.polyline.boundingMapRect, 
                                  edgePadding: UIEdgeInsets(top: 40, left: 40, bottom: 40, right: 40),

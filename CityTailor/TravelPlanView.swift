@@ -234,7 +234,7 @@ struct TravelPlanView: View {
                     ShareSheet(items: [pdfData])
                 }
             }
-            .sheet(isPresented: $showEmptyDetailView) {
+            .fullScreenCover(isPresented: $showEmptyDetailView) {
                 if let activity = selectedActivity {
                     EmptyDetailView(activity: activity)
                 }
