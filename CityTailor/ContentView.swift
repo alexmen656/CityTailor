@@ -43,9 +43,35 @@ struct ContentView: View {
     @State private var showSaveFeedback = false
     @StateObject private var tabSelection = TabSelection()
     
+    // City struct to store city name and emoji
+    struct City: Identifiable, Hashable {
+        let id = UUID()
+        let name: String
+        let emoji: String
+        
+        static let paris = City(name: "Paris", emoji: "🗼")
+        static let london = City(name: "London", emoji: "🎡")
+        static let newYork = City(name: "New York", emoji: "🗽")
+        static let tokyo = City(name: "Tokyo", emoji: "🎌")
+        static let rome = City(name: "Rome", emoji: "🏛️")
+        static let barcelona = City(name: "Barcelona", emoji: "🎨")//⛪
+        static let berlin = City(name: "Berlin", emoji: "🧸")
+        static let amsterdam = City(name: "Amsterdam", emoji: "🚲")
+        static let vienna = City(name: "Vienna", emoji: "🎼")//🎭
+        static let prague = City(name: "Prague", emoji: "🕰️")
+    }
+    
     private let popularCities = [
-        "Paris", "London", "New York", "Tokyo", "Rome", 
-        "Barcelona", "Berlin", "Amsterdam", "Vienna", "Prague"
+        City.paris,
+        City.london,
+        City.newYork,
+        City.tokyo,
+        City.rome,
+        City.barcelona,
+        City.berlin,
+        City.amsterdam,
+        City.vienna,
+        City.prague
     ]
 
     @FetchRequest(
@@ -143,7 +169,7 @@ struct ContentView: View {
                 
                 if searchText.isEmpty && travelPlan == nil {
                     SuggestedCityTags(cities: popularCities) { city in
-                        searchText = city
+                        searchText = city.name
                         searchLocation()
                     }
                 }
@@ -513,8 +539,8 @@ struct ActivityDetailView: View {
 }
 
 struct SuggestedCityTags: View {
-    let cities: [String]
-    let onSelect: (String) -> Void
+    let cities: [ContentView.City]
+    let onSelect: (ContentView.City) -> Void
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -523,14 +549,17 @@ struct SuggestedCityTags: View {
                     Button(action: {
                         onSelect(city)
                     }) {
-                        Text(city)
-                            .font(.system(size: 14, weight: .medium))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Color(UIColor.systemBackground))
-                            .foregroundColor(.primary)
-                            .cornerRadius(10)
-                            .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                        HStack {
+                            Text(city.emoji)
+                            Text(city.name)
+                        }
+                        .font(.system(size: 14, weight: .medium))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color(UIColor.systemBackground))
+                        .foregroundColor(.primary)
+                        .cornerRadius(10)
+                        .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
                     }
                 }
             }
