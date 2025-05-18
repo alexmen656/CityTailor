@@ -141,7 +141,6 @@ struct Activity: Codable, Identifiable {
         title = try container.decode(String.self, forKey: .title)
         description = try container.decode(String.self, forKey: .description)
         
-        
         let mapAddr = try? container.decodeIfPresent(String.self, forKey: .mapAddress)
         let displayAddr = try? container.decodeIfPresent(String.self, forKey: .displayAddress)
         
@@ -149,7 +148,6 @@ struct Activity: Codable, Identifiable {
             mapAddress = map
             displayAddress = display
         } else {
-            
             let location = try container.decode(String.self, forKey: .location)
             mapAddress = location
             displayAddress = location
@@ -178,10 +176,7 @@ struct Activity: Codable, Identifiable {
     }
 }
 
-
 extension Activity {
-    
-    /
     var isTicketable: Bool {
         
         let ticketableCategories = [
@@ -203,24 +198,16 @@ extension Activity {
         let lowercasedTitle = title.lowercased()
         let lowercasedCategory = category.lowercased()
         
-        
         return ticketableCategories.contains { keyword in
             lowercasedCategory.contains(keyword) || lowercasedTitle.contains(keyword)
         }
     }
     
     var getYourGuideURL: URL? {
-        
         let baseURL = "https://www.getyourguide.com"
-        
-        
         let locationComponents = displayAddress.components(separatedBy: ",")
         let locationName = locationComponents.count > 1 ? locationComponents.last?.trimmingCharacters(in: .whitespacesAndNewlines) : title
-        
-        
         var searchQuery = locationName ?? ""
-        
-        
         let titleWords = title.components(separatedBy: " ")
         let significantTitleWords = titleWords.filter { word in
             let lowercasedWord = word.lowercased()
@@ -231,7 +218,6 @@ extension Activity {
         if !significantTitleWords.isEmpty {
             searchQuery += " " + significantTitleWords.joined(separator: " ")
         }
-        
         
         if let encodedQuery = searchQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
             return URL(string: "\(baseURL)/s/?q=\(encodedQuery)&partner_id=EAULFPM&cmp=share_to_earn")
