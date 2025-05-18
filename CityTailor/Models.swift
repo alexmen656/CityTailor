@@ -1,6 +1,6 @@
 import SwiftUI
 import CoreLocation
-import MapKit  // Added MapKit import to access MKMapItem
+import MapKit  
 
 enum TransportationType: String, CaseIterable, Codable {
     case walking = "transport_type_walking"
@@ -175,6 +175,69 @@ struct Activity: Codable, Identifiable {
         self.mapAddress = mapAddress
         self.displayAddress = displayAddress
         self.category = category
+    }
+}
+
+
+extension Activity {
+    
+    /
+    var isTicketable: Bool {
+        
+        let ticketableCategories = [
+            "museum", "museum", "musée", "museo",
+            "attraction", "attraktion", "atracción", "attrazione",
+            "tour", "führung", "visita",
+            "exhibit", "ausstellung", "exposition", "exposición", "mostra",
+            "art", "kunst", "arte",
+            "theater", "théâtre", "teatro",
+            "concert", "konzert", "concierto", "concerto",
+            "show", "aufführung", "spectacle", "espectáculo", "spettacolo",
+            "park", "parque", "parco",
+            "garden", "garten", "jardin", "jardín", "giardino",
+            "palace", "palast", "palacio", "palazzo",
+            "castle", "schloss", "château", "castillo", "castello",
+            "monument", "denkmal", "monumento"
+        ]
+        
+        let lowercasedTitle = title.lowercased()
+        let lowercasedCategory = category.lowercased()
+        
+        
+        return ticketableCategories.contains { keyword in
+            lowercasedCategory.contains(keyword) || lowercasedTitle.contains(keyword)
+        }
+    }
+    
+    var getYourGuideURL: URL? {
+        
+        let baseURL = "https://www.getyourguide.com"
+        
+        
+        let locationComponents = displayAddress.components(separatedBy: ",")
+        let locationName = locationComponents.count > 1 ? locationComponents.last?.trimmingCharacters(in: .whitespacesAndNewlines) : title
+        
+        
+        var searchQuery = locationName ?? ""
+        
+        
+        let titleWords = title.components(separatedBy: " ")
+        let significantTitleWords = titleWords.filter { word in
+            let lowercasedWord = word.lowercased()
+            
+            return word.count > 3 && !["the", "and", "oder", "oder", "oder", "des", "los", "las", "les", "il", "lo", "la"].contains(lowercasedWord)
+        }
+        
+        if !significantTitleWords.isEmpty {
+            searchQuery += " " + significantTitleWords.joined(separator: " ")
+        }
+        
+        
+        if let encodedQuery = searchQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            return URL(string: "\(baseURL)/s/?q=\(encodedQuery)&partner_id=EAULFPM&cmp=share_to_earn")
+        }
+        
+        return URL(string: baseURL)
     }
 }
 

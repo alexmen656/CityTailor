@@ -11,7 +11,9 @@ struct TravelPlanView: View {
     @State private var showPremiumView = false
     @State private var showShareSheet = false
     @State private var showEmptyDetailView = false
+    @State private var showGetYourGuideView = false
     @State private var selectedActivity: Activity?
+    @State private var getYourGuideURL: URL?
     @State private var pdfData: Data?
     var onActivitySelected: ((Activity) -> Void)? = nil
     
@@ -133,6 +135,16 @@ struct TravelPlanView: View {
                                                 .foregroundColor(.blue)
                                         }
                                         .padding(.trailing, 4)
+                                        
+                                        Button(action: {
+                                            if let url = activity.getYourGuideURL {
+                                                getYourGuideURL = url
+                                                showGetYourGuideView = true
+                                            }
+                                        }) {
+                                            Image(systemName: "ticket")
+                                                .foregroundColor(.green)
+                                        }
                                     }
                                     .padding(.top, 3)
                                 }
@@ -234,9 +246,14 @@ struct TravelPlanView: View {
                     ShareSheet(items: [pdfData])
                 }
             }
+            .sheet(isPresented: $showGetYourGuideView) {
+                if let url = getYourGuideURL {
+                    SafariView(url: url)
+                }
+            }
             .fullScreenCover(isPresented: $showEmptyDetailView) {
                 if let activity = selectedActivity {
-                    EmptyDetailView(activity: activity)
+                    TicketableActivityDetailView(activity: activity)
                 }
             }
         }
@@ -428,6 +445,152 @@ struct TravelPlanView: View {
             }
         }
         #endif
+    }
+}
+
+struct SafariView: View {
+    let url: URL
+    @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject private var languageManager: LanguageManager
+    
+    var body: some View {
+        WebView(url: url)
+    }
+}
+
+struct TicketableActivityDetailView: View {
+    let activity: Activity
+    @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject private var languageManager: LanguageManager
+    @State private var showGetYourGuideView = false
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Text(activity.time)
+                            .font(.headline)
+                            .foregroundColor(.blue)
+                        
+                        Spacer()
+                        
+                        Text(activity.category)
+                            .font(.caption)
+                            .padding(5)
+                            .background(categoryColor(for: activity.category))
+                            .foregroundColor(.white)
+                            .cornerRadius(5)
+                    }
+                    
+                    Text(activity.title)
+                        .font(.title)
+                        .bold()
+                    
+                    Text(activity.description)
+                        .padding(.top, 2)
+                    
+                    HStack {
+                        Image(systemName: "mappin.circle.fill")
+                            .foregroundColor(.red)
+                        Text(activity.displayAddress)
+                    }
+                    .padding(.top, 8)
+                    
+                    if activity.isTicketable {
+                        #if os(iOS)
+                        Button(action: {
+                            if let url = activity.getYourGuideURL {
+                                UIApplication.shared.open(url)
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "ticket.fill")
+                                    .foregroundColor(.white)
+                                Text(languageManager.localize("get_tickets"))
+                                    .foregroundColor(.white)
+                                    .fontWeight(.semibold)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.green)
+                            .cornerRadius(10)
+                        }
+                        .padding(.top, 20)
+                        #else
+                        Button(action: {
+                            if let url = activity.getYourGuideURL {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "ticket.fill")
+                                    .foregroundColor(.white)
+                                Text(languageManager.localize("get_tickets"))
+                                    .foregroundColor(.white)
+                                    .fontWeight(.semibold)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.green)
+                            .cornerRadius(10)
+                        }
+                        .padding(.top, 20)
+                        #endif
+                    }
+                    
+                    Spacer()
+                }
+                .padding()
+            }
+            .navigationTitle(languageManager.localize("activity"))
+            .navigationBarItems(trailing: Button(languageManager.localize("done")) {
+                presentationMode.wrappedValue.dismiss()
+            })
+        }
+        .sheet(isPresented: $showGetYourGuideView) {
+            if let url = activity.getYourGuideURL {
+                SafariView(url: url)
+            }
+        }
+    }
+    
+    func categoryColor(for category: String) -> Color {
+        let lowercasedCategory = category.lowercased()
+        
+        if ["kunst", "art", "arte"].contains(where: lowercasedCategory.contains) {
+            return Color.purple
+        }
+        
+        if ["geschichte", "history", "histoire", "historia", "storia"].contains(where: lowercasedCategory.contains) {
+            return Color.orange
+        }
+        
+        if ["architektur", "architecture", "arquitectura", "architettura"].contains(where: lowercasedCategory.contains) {
+            return Color.blue
+        }
+        
+        if ["gastronomie", "gastronomy", "gastronomía", "gastronomia", "essen", "food", "cuisine"].contains(where: lowercasedCategory.contains) {
+            return Color.red
+        }
+        
+        if ["shopping", "einkaufen", "compras", "achats"].contains(where: lowercasedCategory.contains) {
+            return Color.pink
+        }
+        
+        if ["nachtleben", "nightlife", "vida nocturna", "vie nocturne", "vita notturna"].contains(where: lowercasedCategory.contains) {
+            return Color.indigo
+        }
+        
+        if ["kultur", "culture", "cultura"].contains(where: lowercasedCategory.contains) {
+            return Color.teal
+        }
+        
+        if ["sightseeing", "besichtigung", "visites", "visitas", "visite"].contains(where: lowercasedCategory.contains) {
+            return Color.green
+        }
+        
+        return Color.gray
     }
 }
 
