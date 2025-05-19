@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InterestsView: View {
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var languageManager: LanguageManager
     @State private var interests: [Interest] = loadInterests()
     
     var onComplete: (() -> Void)?
@@ -11,7 +12,7 @@ struct InterestsView: View {
             List {
                 ForEach(interests.indices, id: \.self) { index in
                     VStack(alignment: .leading) {
-                        Text(interests[index].name)
+                        Text(languageManager.localize(interests[index].name))
                             .font(.headline)
                         
                         HStack {
@@ -26,15 +27,15 @@ struct InterestsView: View {
                                 .foregroundColor(.gray)
                         }
                         
-                        Text("Bewertung: \(Int(interests[index].rating))")
+                        Text(ratingText(interests[index].rating))
                             .font(.subheadline)
                             .foregroundColor(.blue)
                     }
                     .padding(.vertical, 5)
                 }
             }
-            .navigationTitle("Interessen")
-            .navigationBarItems(trailing: Button("Fertig") {
+            .navigationTitle(languageManager.localize("interests"))
+            .navigationBarItems(trailing: Button(languageManager.localize("done")) {
                 saveInterests()
                 if let onComplete = onComplete {
                     onComplete()
@@ -61,18 +62,22 @@ struct InterestsView: View {
             }
         } else {
             return [
-                Interest(name: "Kunst", rating: 5),
-                Interest(name: "Architektur", rating: 5),
-                Interest(name: "Geschichte", rating: 5),
-                Interest(name: "Natur", rating: 5),
-                Interest(name: "Gastronomie", rating: 5),
-                Interest(name: "Shopping", rating: 5),
-                Interest(name: "Nachtleben", rating: 5),
-                Interest(name: "Sport", rating: 5),
-                Interest(name: "Technologie", rating: 5),
-                Interest(name: "Musik", rating: 5),
-                Interest(name: "Reisen", rating: 5)
+                Interest(name: "art", rating: 5),
+                Interest(name: "architecture", rating: 5),
+                Interest(name: "history", rating: 5),
+                Interest(name: "nature", rating: 5),
+                Interest(name: "gastronomy", rating: 5),
+                Interest(name: "shopping", rating: 5),
+                Interest(name: "nightlife", rating: 5),
+                Interest(name: "sport", rating: 5),
+                Interest(name: "technology", rating: 5),
+                Interest(name: "music", rating: 5),
+                Interest(name: "travel", rating: 5)
             ]
         }
+    }
+    
+    private func ratingText(_ value: Double) -> String {
+        return "\(languageManager.localize("rating")): \(Int(value))"
     }
 }
