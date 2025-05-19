@@ -81,73 +81,86 @@ struct TravelPlanView: View {
                     if let dayPlan = dailyPlans.first(where: { $0.dayNumber == selectedDay }) {
                         List {
                             ForEach(dayPlan.activities) { activity in
-                                VStack(alignment: .leading, spacing: 5) {
-                                    HStack {
-                                        Text(activity.time)
-                                            .font(.headline)
-                                            .foregroundColor(.blue)
+                                VStack {
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        HStack {
+                                            Text(activity.time)
+                                                .font(.headline)
+                                                .foregroundColor(.blue)
+                                            
+                                            Spacer()
+                                            
+                                            Text(translateCategory(activity.category))
+                                                .font(.caption)
+                                                .padding(5)
+                                                .background(categoryColor(for: activity.category))
+                                                .foregroundColor(.white)
+                                                .cornerRadius(5)
+                                        }
                                         
-                                        Spacer()
-                                        
-                                        Text(translateCategory(activity.category))
-                                            .font(.caption)
-                                            .padding(5)
-                                            .background(categoryColor(for: activity.category))
-                                            .foregroundColor(.white)
-                                            .cornerRadius(5)
-                                    }
-                                    
-                                    Text(activity.title)
-                                        .font(.title3)
-                                        .bold()
-                                        .foregroundColor(.primary)
-                                    
-                                    Text(activity.description)
-                                        .font(.body)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(2)
-                                    
-                                    HStack {
-                                        Image(systemName: "mappin.circle.fill")
-                                            .foregroundColor(.red)
-                                        Text(activity.displayAddress)
-                                            .font(.subheadline)
+                                        Text(activity.title)
+                                            .font(.title3)
+                                            .bold()
                                             .foregroundColor(.primary)
                                         
-                                        Spacer()
+                                        Text(activity.description)
+                                            .font(.body)
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(2)
                                         
-                                        Button(action: {
-                                            selectedActivity = activity
-                                            if let onActivitySelected = onActivitySelected {
-                                                onActivitySelected(activity)
-                                            }
-                                        }) {
-                                            Image(systemName: "map")
-                                                .foregroundColor(.blue)
-                                        }
-                                        .padding(.trailing, 8)
-                                        
-                                        Button(action: {
-                                            selectedActivity = activity
-                                            showEmptyDetailView = true
-                                        }) {
-                                            Image(systemName: "info.circle")
-                                                .foregroundColor(.blue)
+                                        HStack {
+                                            Image(systemName: "mappin.circle.fill")
+                                                .foregroundColor(.red)
+                                            Text(activity.displayAddress)
+                                                .font(.subheadline)
+                                                .foregroundColor(.primary)
                                         }
                                         .padding(.trailing, 4)
+                                        .padding(.bottom, 8)
                                         
-                                        Button(action: {
-                                            if let url = activity.getYourGuideURL {
-                                                getYourGuideURL = url
-                                                showGetYourGuideView = true
+                                        HStack(spacing: 10) {
+                                            if activity.isTicketable {
+                                                Button(action: {
+                                                    if let url = activity.getYourGuideURL {
+                                                        getYourGuideURL = url
+                                                        showGetYourGuideView = true
+                                                    }
+                                                }) {
+                                                    HStack {
+                                                        Image(systemName: "ticket.fill")
+                                                            .foregroundColor(.white)
+                                                        Text(languageManager.localize("get_tickets"))
+                                                            .foregroundColor(.white)
+                                                            .fontWeight(.semibold)
+                                                    }
+                                                    .padding(.vertical, 8)
+                                                    .frame(maxWidth: .infinity)
+                                                    .background(Color.green)
+                                                    .cornerRadius(8)
+                                                }
                                             }
-                                        }) {
-                                            Image(systemName: "ticket")
-                                                .foregroundColor(.green)
+                                            
+                                            Button(action: {
+                                                selectedActivity = activity
+                                                showEmptyDetailView = true
+                                            }) {
+                                                HStack {
+                                                    Image(systemName: "location.fill")
+                                                        .foregroundColor(.white)
+                                                    Text(languageManager.localize("navigate"))
+                                                        .foregroundColor(.white)
+                                                        .fontWeight(.semibold)
+                                                }
+                                                .padding(.vertical, 8)
+                                                .frame(maxWidth: .infinity)
+                                                .background(Color.blue)
+                                                .cornerRadius(8)
+                                            }
                                         }
                                     }
                                     .padding(.top, 3)
                                 }
+                                .buttonStyle(PlainButtonStyle())
                                 .padding(.vertical, 8)
                             }
                             
@@ -463,7 +476,7 @@ struct TicketableActivityDetailView: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject private var languageManager: LanguageManager
     @State private var showGetYourGuideView = false
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
@@ -496,47 +509,62 @@ struct TicketableActivityDetailView: View {
                         Text(activity.displayAddress)
                     }
                     .padding(.top, 8)
+                    .padding(.bottom, 16)
                     
-                    if activity.isTicketable {
-                        #if os(iOS)
-                        Button(action: {
-                            if let url = activity.getYourGuideURL {
-                                UIApplication.shared.open(url)
+                    HStack(spacing: 12) {
+                        if activity.isTicketable {
+                            #if os(iOS)
+                            Button(action: {
+                                if let url = activity.getYourGuideURL {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "ticket.fill")
+                                        .foregroundColor(.white)
+                                    Text(languageManager.localize("get_tickets"))
+                                        .foregroundColor(.white)
+                                        .fontWeight(.semibold)
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.green)
+                                .cornerRadius(10)
                             }
-                        }) {
+                            #else
+                            Button(action: {
+                                if let url = activity.getYourGuideURL {
+                                    NSWorkspace.shared.open(url)
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "ticket.fill")
+                                        .foregroundColor(.white)
+                                    Text(languageManager.localize("get_tickets"))
+                                        .foregroundColor(.white)
+                                        .fontWeight(.semibold)
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.green)
+                                .cornerRadius(10)
+                            }
+                            #endif
+                        }
+                        
+                        NavigationLink(destination: EmptyDetailView(activity: activity).environmentObject(languageManager)) {
                             HStack {
-                                Image(systemName: "ticket.fill")
+                                Image(systemName: "location.fill")
                                     .foregroundColor(.white)
-                                Text(languageManager.localize("get_tickets"))
+                                Text(languageManager.localize("navigate"))
                                     .foregroundColor(.white)
                                     .fontWeight(.semibold)
                             }
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Color.green)
+                            .background(Color.blue)
                             .cornerRadius(10)
                         }
-                        .padding(.top, 20)
-                        #else
-                        Button(action: {
-                            if let url = activity.getYourGuideURL {
-                                NSWorkspace.shared.open(url)
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "ticket.fill")
-                                    .foregroundColor(.white)
-                                Text(languageManager.localize("get_tickets"))
-                                    .foregroundColor(.white)
-                                    .fontWeight(.semibold)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .cornerRadius(10)
-                        }
-                        .padding(.top, 20)
-                        #endif
                     }
                     
                     Spacer()

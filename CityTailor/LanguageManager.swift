@@ -247,6 +247,7 @@ class LanguageManager: ObservableObject {
                 "premium_feature": "Premium-Funktion",
                 
                 // Navigation
+                "get_tickets": "Tickets kaufen",
                 "navigate": "Navigieren",
                 "fastest": "Schnellste",
                 "eta": "ETA",
@@ -407,6 +408,7 @@ class LanguageManager: ObservableObject {
                 "premium_feature": "Premium Feature",
                 
                 // Navigation
+                "get_tickets": "Get Tickets",
                 "navigate": "Navigate",
                 "fastest": "Fastest",
                 "eta": "ETA",
@@ -567,6 +569,7 @@ class LanguageManager: ObservableObject {
                 "premium_feature": "Fonctionnalité Premium",
                 
                 // Navigation
+                "get_tickets": "Obtenir des billets",
                 "navigate": "Naviguer",
                 "fastest": "Le plus rapide",
                 "eta": "ETA",
@@ -727,6 +730,7 @@ class LanguageManager: ObservableObject {
                 "premium_feature": "Función Premium",
                 
                 // Navigation
+                "get_tickets": "Conseguir entradas",
                 "navigate": "Navegar",
                 "fastest": "Más rápido",
                 "eta": "ETA",
@@ -887,6 +891,7 @@ class LanguageManager: ObservableObject {
                 "premium_feature": "Funzionalità Premium",
                 
                 // Navigation
+                "get_tickets": "Acquista biglietti",
                 "navigate": "Naviga",
                 "fastest": "Più veloce",
                 "eta": "ETA",
