@@ -247,14 +247,16 @@ struct MapAnnotation: Identifiable {
     let activityInfo: Activity?
     let useAppleMapsStyle: Bool
     let mapItem: MKMapItem?
+    let imageURL: URL?
     
-    init(title: String, subtitle: String? = nil, coordinate: CLLocationCoordinate2D, activityInfo: Activity? = nil, useAppleMapsStyle: Bool = false, mapItem: MKMapItem? = nil) {
+    init(title: String, subtitle: String? = nil, coordinate: CLLocationCoordinate2D, activityInfo: Activity? = nil, useAppleMapsStyle: Bool = false, mapItem: MKMapItem? = nil, imageURL: URL? = nil) {
         self.title = title
         self.subtitle = subtitle
         self.coordinate = coordinate
         self.activityInfo = activityInfo
         self.useAppleMapsStyle = useAppleMapsStyle
         self.mapItem = mapItem
+        self.imageURL = imageURL
     }
 }
 

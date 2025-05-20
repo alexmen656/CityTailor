@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import UIKit
 
 struct MapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
@@ -128,10 +129,9 @@ struct MapView: UIViewRepresentable {
                     pin.subtitle = annotation.subtitle
                     pin.activityInfo = annotation.activityInfo
                     pin.clusteringIdentifier = "ActivityCluster"
-                    
-                    
                     pin.useAppleMapsStyle = annotation.useAppleMapsStyle
                     pin.mapItem = annotation.mapItem
+                    pin.imageURL = annotation.imageURL
                     
                     view.addAnnotation(pin)
                 }
@@ -153,10 +153,9 @@ struct MapView: UIViewRepresentable {
                     pin.activityInfo = annotation.activityInfo
                     pin.originalCoordinate = baseCoordinate 
                     pin.clusteringIdentifier = "ActivityCluster"
-                    
-                    
                     pin.useAppleMapsStyle = annotation.useAppleMapsStyle
                     pin.mapItem = annotation.mapItem
+                    pin.imageURL = annotation.imageURL
                     
                     view.addAnnotation(pin)
                 }
@@ -168,10 +167,9 @@ struct MapView: UIViewRepresentable {
                     pin.subtitle = annotation.subtitle
                     pin.activityInfo = annotation.activityInfo
                     pin.clusteringIdentifier = "ActivityCluster"
-                    
-                    
                     pin.useAppleMapsStyle = annotation.useAppleMapsStyle
                     pin.mapItem = annotation.mapItem
+                    pin.imageURL = annotation.imageURL
                     
                     view.addAnnotation(pin)
                 }
@@ -182,15 +180,7 @@ struct MapView: UIViewRepresentable {
     func makeCoordinator() -> Coordinator {
         return Coordinator(self, languageManager: languageManager)
     }
-    
-    class CustomPointAnnotation: MKPointAnnotation {
-        var activityInfo: Activity?
-        var clusteringIdentifier: String?
-        var originalCoordinate: CLLocationCoordinate2D?
-        var useAppleMapsStyle: Bool = false
-        var mapItem: MKMapItem?
-    }
-    
+        
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: MapView
         var languageManager: LanguageManager
@@ -247,6 +237,53 @@ struct MapView: UIViewRepresentable {
             }
             
             if let customAnnotation = annotation as? CustomPointAnnotation {
+                
+                if customAnnotation.imageURL != nil || customAnnotation.activityInfo != nil {
+                    let identifier = "CustomImagePin"
+                    var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? CustomAnnotationView
+                    
+                    if annotationView == nil {
+                        annotationView = CustomAnnotationView(annotation: customAnnotation, reuseIdentifier: identifier)
+                        
+                        annotationView?.canShowCallout = true
+                        
+                        let infoButton = UIButton(type: .detailDisclosure)
+                        annotationView?.rightCalloutAccessoryView = infoButton
+                        
+                        let directionsButton = UIButton(type: .system)
+                        directionsButton.setImage(UIImage(systemName: "location.fill"), for: .normal)
+                        annotationView?.leftCalloutAccessoryView = directionsButton
+                    } else {
+                        annotationView?.annotation = customAnnotation
+                    }
+                    
+                    var tintColor: UIColor? = .systemBlue
+                    if let category = customAnnotation.activityInfo?.category.lowercased() {
+                        if category.contains(languageManager.localize("art").lowercased()) {
+                            tintColor = .systemPurple
+                        } else if category.contains(languageManager.localize("history").lowercased()) {
+                            tintColor = .systemOrange
+                        } else if category.contains(languageManager.localize("architecture").lowercased()) {
+                            tintColor = .systemBlue
+                        } else if category.contains(languageManager.localize("gastronomy").lowercased()) {
+                            tintColor = .systemRed
+                        } else if category.contains(languageManager.localize("shopping").lowercased()) {
+                            tintColor = .systemPink
+                        } else if category.contains(languageManager.localize("nightlife").lowercased()) {
+                            tintColor = .systemIndigo
+                        } else if category.contains(languageManager.localize("culture").lowercased()) {
+                            tintColor = .systemTeal
+                        } else if category.contains(languageManager.localize("sightseeing").lowercased()) {
+                            tintColor = .systemGreen
+                        }
+                    }
+                    
+                    annotationView?.configure(with: customAnnotation, tintColor: tintColor)
+                    annotationView?.clusteringIdentifier = "ActivityCluster"
+                    annotationView?.displayPriority = .required
+                    
+                    return annotationView
+                }
                 
                 if customAnnotation.useAppleMapsStyle, let mapItem = customAnnotation.mapItem {
                     print("🍎 DEBUG: Using Apple Maps POI styling for: \(customAnnotation.title ?? "Unknown")")
