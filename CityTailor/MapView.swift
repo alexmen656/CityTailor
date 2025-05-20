@@ -35,6 +35,10 @@ struct MapView: UIViewRepresentable {
         
         applyMapSettings(to: view)
         
+        if #available(iOS 14.0, *) {
+            view.pointOfInterestFilter = settings.showPOIs ? .includingAll : .excludingAll
+        }
+        
         updateAnnotations(view: view, annotations: annotations)
         
         if let selectedAnnotation = selectedAnnotation, 
@@ -113,7 +117,7 @@ struct MapView: UIViewRepresentable {
             view.removeAnnotations(annotationsToRemove)
         }
         
-        let isZoomedIn = view.region.span.latitudeDelta < 0.01 
+        let isZoomedIn = view.region.span.latitudeDelta < 0.055
         
         for (coordinateKey, group) in coordinateGroups {
             
@@ -128,7 +132,13 @@ struct MapView: UIViewRepresentable {
                     pin.title = annotation.title
                     pin.subtitle = annotation.subtitle
                     pin.activityInfo = annotation.activityInfo
-                    pin.clusteringIdentifier = "ActivityCluster"
+                    
+                    if !isZoomedIn {
+                        pin.clusteringIdentifier = "ActivityCluster"
+                    } else {
+                        pin.clusteringIdentifier = nil
+                    }
+                    
                     pin.useAppleMapsStyle = annotation.useAppleMapsStyle
                     pin.mapItem = annotation.mapItem
                     pin.imageURL = annotation.imageURL
@@ -152,7 +162,7 @@ struct MapView: UIViewRepresentable {
                     pin.subtitle = annotation.subtitle
                     pin.activityInfo = annotation.activityInfo
                     pin.originalCoordinate = baseCoordinate 
-                    pin.clusteringIdentifier = "ActivityCluster"
+                    pin.clusteringIdentifier = nil
                     pin.useAppleMapsStyle = annotation.useAppleMapsStyle
                     pin.mapItem = annotation.mapItem
                     pin.imageURL = annotation.imageURL
@@ -279,7 +289,7 @@ struct MapView: UIViewRepresentable {
                     }
                     
                     annotationView?.configure(with: customAnnotation, tintColor: tintColor)
-                    annotationView?.clusteringIdentifier = "ActivityCluster"
+                    annotationView?.clusteringIdentifier = customAnnotation.clusteringIdentifier
                     annotationView?.displayPriority = .required
                     
                     return annotationView
@@ -366,7 +376,7 @@ struct MapView: UIViewRepresentable {
                         annotationView?.annotation = customAnnotation
                     }
                     
-                    annotationView?.clusteringIdentifier = "ActivityCluster"
+                    annotationView?.clusteringIdentifier = customAnnotation.clusteringIdentifier
                     annotationView?.displayPriority = .required
                     
                     if let title = customAnnotation.title {

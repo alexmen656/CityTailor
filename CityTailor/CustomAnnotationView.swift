@@ -41,9 +41,7 @@ class CustomAnnotationView: MKAnnotationView {
                 imageView?.backgroundColor = isDarkMode ? UIColor(red: 204/255, green: 218/255, blue: 252/255, alpha: 1.0) : .white
                 
                 titleLabel?.textColor = isDarkMode ? .white : .black
-                titleLabel?.backgroundColor = isDarkMode ? 
-                    UIColor.darkGray.withAlphaComponent(0.85) : 
-                    UIColor.white.withAlphaComponent(0.85)
+                titleLabel?.backgroundColor = .clear
             }
         }
     }
@@ -57,24 +55,24 @@ class CustomAnnotationView: MKAnnotationView {
             isDarkMode = traitCollection.userInterfaceStyle == .dark
         }
         
-        shadowView = UIView(frame: CGRect(x: 31, y: 0, width: 48, height: 48))  
+        shadowView = UIView(frame: CGRect(x: 31, y: 0, width: 50, height: 50))  
         shadowView?.backgroundColor = .clear
         shadowView?.layer.shadowColor = UIColor.black.cgColor
         shadowView?.layer.shadowRadius = 3
         shadowView?.layer.shadowOpacity = 0.3
         shadowView?.layer.shadowOffset = CGSize(width: 0, height: 1)
         
-        containerView = UIView(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
+        containerView = UIView(frame: CGRect(x: 0, y: 0, width: 46, height: 46))
         containerView?.backgroundColor = isDarkMode ? .darkGray : .white
-        containerView?.layer.cornerRadius = 22
+        containerView?.layer.cornerRadius = 23
         containerView?.layer.masksToBounds = true
         containerView?.layer.borderWidth = 2
         containerView?.layer.borderColor = isDarkMode ? UIColor(red: 204/255, green: 218/255, blue: 252/255, alpha: 1.0).cgColor : UIColor.white.cgColor
         
-        imageView = UIImageView(frame: CGRect(x: 2, y: 2, width: 40, height: 40))
+        imageView = UIImageView(frame: CGRect(x: 2, y: 2, width: 42, height: 42))
         imageView?.contentMode = .scaleAspectFill
         imageView?.backgroundColor = isDarkMode ? UIColor(red: 204/255, green: 218/255, blue: 252/255, alpha: 1.0) : .white
-        imageView?.layer.cornerRadius = 20
+        imageView?.layer.cornerRadius = 21
         imageView?.layer.masksToBounds = true
         
         categoryIndicator = UIView(frame: CGRect(x: 26, y: 26, width: 12, height: 12))
@@ -99,14 +97,17 @@ class CustomAnnotationView: MKAnnotationView {
              containerView.addSubview(categoryIndicator)
          }*/
         
-        titleLabel = UILabel(frame: CGRect(x: 0, y: 42, width: 100, height: 24))
+        titleLabel = UILabel(frame: CGRect(x: 0, y: 50, width: 100, height: 24))
         titleLabel?.textAlignment = .center
         titleLabel?.font = UIFont.systemFont(ofSize: 11, weight: .semibold)
-        titleLabel?.textColor = isDarkMode ? .white : .black
-        titleLabel?.backgroundColor = isDarkMode ? 
-            UIColor.darkGray.withAlphaComponent(0.85) : 
-            UIColor.white.withAlphaComponent(0.85)
-        titleLabel?.layer.cornerRadius = 5
+        titleLabel?.textColor = isDarkMode ? UIColor.white : UIColor.black
+        titleLabel?.backgroundColor = .clear
+        
+        titleLabel?.layer.shadowColor = UIColor.black.cgColor
+        titleLabel?.layer.shadowRadius = 1.5
+        titleLabel?.layer.shadowOpacity = 0.7
+        titleLabel?.layer.shadowOffset = CGSize(width: 0, height: 0.5)
+        titleLabel?.layer.masksToBounds = false
         titleLabel?.layer.masksToBounds = true
         titleLabel?.adjustsFontSizeToFitWidth = true
         titleLabel?.minimumScaleFactor = 0.8
@@ -131,7 +132,7 @@ class CustomAnnotationView: MKAnnotationView {
         if let title = annotation.title {
             titleLabel?.text = title
             let titleWidth = min(max((title as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 11, weight: .semibold)]).width + 10, 60), 100)
-            titleLabel?.frame = CGRect(x: (100 - titleWidth) / 2, y: 42, width: titleWidth, height: 24)
+            titleLabel?.frame = CGRect(x: (100 - titleWidth) / 2, y: 50, width: titleWidth, height: 24)
         }
         
         if let imageURL = annotation.imageURL {
@@ -139,9 +140,8 @@ class CustomAnnotationView: MKAnnotationView {
         } else if let activityInfo = annotation.activityInfo {
             setPlaceholderImage(for: activityInfo.category)
         } else {
-            imageView?.image = UIImage(systemName: "photo")
-            imageView?.tintColor = .darkGray
-            imageView?.contentMode = .center
+            imageView?.image = UIImage(named: "AppIcon")
+            imageView?.contentMode = .scaleAspectFill
         }
     }
     
@@ -160,9 +160,8 @@ class CustomAnnotationView: MKAnnotationView {
             } catch {
                 print("Failed to load image: \(error)")
                 await MainActor.run {
-                    self.imageView?.image = UIImage(systemName: "photo")
-                    self.imageView?.tintColor = .darkGray
-                    self.imageView?.contentMode = .center
+                    self.imageView?.image = UIImage(named: "AppIcon") 
+                    self.imageView?.contentMode = .scaleAspectFill
                 }
             }
         }
@@ -218,7 +217,7 @@ class CustomAnnotationView: MKAnnotationView {
             UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: [], animations: {
                 self.shadowView?.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
                 self.titleLabel?.alpha = 1.0
-                self.titleLabel?.backgroundColor = self.isDarkMode ? UIColor.darkGray : UIColor.white
+                self.titleLabel?.backgroundColor = .clear
                 self.titleLabel?.layer.shadowColor = UIColor.black.cgColor
                 self.titleLabel?.layer.shadowRadius = 2
                 self.titleLabel?.layer.shadowOpacity = 0.3
@@ -229,9 +228,7 @@ class CustomAnnotationView: MKAnnotationView {
                     
                     if !selected {
                         self.titleLabel?.alpha = 0.85
-                        self.titleLabel?.backgroundColor = self.isDarkMode ? 
-                            UIColor.darkGray.withAlphaComponent(0.85) : 
-                            UIColor.white.withAlphaComponent(0.85)
+                        self.titleLabel?.backgroundColor = .clear
                         self.titleLabel?.layer.shadowOpacity = 0
                     }
                 }
