@@ -14,6 +14,7 @@ class CustomAnnotationView: MKAnnotationView {
     private var containerView: UIView?
     private var shadowView: UIView?
     private var categoryIndicator: UIView?
+    private var titleLabel: UILabel?
     
     private var activeImageTask: Task<Void, Never>?
     
@@ -35,11 +36,11 @@ class CustomAnnotationView: MKAnnotationView {
     }
     
     private func setupView() {
-        frame = CGRect(x: 0, y: 0, width: 40, height: 40)
+        frame = CGRect(x: -30, y: 0, width: 100, height: 70)  
         backgroundColor = .clear
         
         
-        shadowView = UIView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+        shadowView = UIView(frame: CGRect(x: 30, y: 0, width: 40, height: 40))  
         shadowView?.backgroundColor = .clear
         shadowView?.layer.shadowColor = UIColor.black.cgColor
         shadowView?.layer.shadowRadius = 3
@@ -84,6 +85,21 @@ class CustomAnnotationView: MKAnnotationView {
             containerView.addSubview(categoryIndicator)
         }
         
+        titleLabel = UILabel(frame: CGRect(x: 0, y: 42, width: 100, height: 24))
+        titleLabel?.textAlignment = .center
+        titleLabel?.font = UIFont.systemFont(ofSize: 11, weight: .semibold)
+        titleLabel?.textColor = .black
+        titleLabel?.backgroundColor = UIColor.white.withAlphaComponent(0.85)
+        titleLabel?.layer.cornerRadius = 5
+        titleLabel?.layer.masksToBounds = true
+        titleLabel?.adjustsFontSizeToFitWidth = true
+        titleLabel?.minimumScaleFactor = 0.8
+        titleLabel?.lineBreakMode = .byTruncatingMiddle
+        titleLabel?.numberOfLines = 2  
+        
+        if let titleLabel = titleLabel {
+            addSubview(titleLabel)
+        }
         
         canShowCallout = true
     }
@@ -96,13 +112,17 @@ class CustomAnnotationView: MKAnnotationView {
         }
         
         
+        if let title = annotation.title {
+            titleLabel?.text = title
+            let titleWidth = min(max((title as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 11, weight: .semibold)]).width + 10, 60), 100)
+            titleLabel?.frame = CGRect(x: (100 - titleWidth) / 2, y: 42, width: titleWidth, height: 24)
+        }
+        
         if let imageURL = annotation.imageURL {
             loadImage(from: imageURL)
         } else if let activityInfo = annotation.activityInfo {
-            
             setPlaceholderImage(for: activityInfo.category)
         } else {
-            
             imageView?.image = UIImage(systemName: "photo")
             imageView?.tintColor = .darkGray
             imageView?.contentMode = .center
@@ -166,28 +186,36 @@ class CustomAnnotationView: MKAnnotationView {
             symbolColor = .systemBlue
         }
         
-        
         containerView?.backgroundColor = symbolColor.withAlphaComponent(0.2)
         
-        
         let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
-        
         
         imageView?.image = UIImage(systemName: symbolName, withConfiguration: config)
         imageView?.tintColor = symbolColor
         imageView?.contentMode = .center
     }
     
-    
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
         
         if selected, animated {
             UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: [], animations: {
-                self.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+                self.shadowView?.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+                self.titleLabel?.alpha = 1.0
+                self.titleLabel?.backgroundColor = UIColor.white
+                self.titleLabel?.layer.shadowColor = UIColor.black.cgColor
+                self.titleLabel?.layer.shadowRadius = 2
+                self.titleLabel?.layer.shadowOpacity = 0.3
+                self.titleLabel?.layer.shadowOffset = CGSize(width: 0, height: 1)
             }) { _ in
                 UIView.animate(withDuration: 0.1) {
-                    self.transform = CGAffineTransform.identity
+                    self.shadowView?.transform = CGAffineTransform.identity
+                    
+                    if !selected {
+                        self.titleLabel?.alpha = 0.85
+                        self.titleLabel?.backgroundColor = UIColor.white.withAlphaComponent(0.85)
+                        self.titleLabel?.layer.shadowOpacity = 0
+                    }
                 }
             }
         }
