@@ -121,8 +121,17 @@ class GeocodingService {
                 if let mapItem = mapItem, let coordinate = coordinate {
                     
                     appleMapsItems[activity.title] = mapItem
-                    let photoURL = getPhotoURLForPlace(place: activity.title, city: city) ?? 
+                    
+                    
+                    var photoURL: URL? = nil
+                    if let imageUrlString = activity.imageUrl, !imageUrlString.isEmpty, 
+                       let url = URL(string: imageUrlString) {
+                        photoURL = url
+                        print("🖼️ DEBUG: Using backend imageUrl for \(activity.title): \(imageUrlString)")
+                    } else {
+                        photoURL = getPhotoURLForPlace(place: activity.title, city: city) ?? 
                                   getRandomPhotoURL(for: activity.category)
+                    }
                     
                     let annotation = MapAnnotation(
                         title: activity.title,
@@ -140,8 +149,16 @@ class GeocodingService {
                     
                     geocodeAddress(from: activity.mapAddress, inCity: city) { coordinate in
                         if let coordinate = coordinate {
-                            let photoURL = getPhotoURLForPlace(place: activity.title, city: city) ?? 
+                            
+                            var photoURL: URL? = nil
+                            if let imageUrlString = activity.imageUrl, !imageUrlString.isEmpty, 
+                               let url = URL(string: imageUrlString) {
+                                photoURL = url
+                                print("🖼️ DEBUG: Using backend imageUrl for \(activity.title): \(imageUrlString)")
+                            } else {
+                                photoURL = getPhotoURLForPlace(place: activity.title, city: city) ?? 
                                           getRandomPhotoURL(for: activity.category)
+                            }
                             
                             let annotation = MapAnnotation(
                                 title: activity.title,

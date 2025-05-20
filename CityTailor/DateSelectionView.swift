@@ -413,7 +413,7 @@ struct DateSelectionView: View {
             tripData["travelMode"] = travelMode.rawValue
         }
         
-        guard let url = URL(string: "https://city-tailor-backend-3muxtsjam-alexmen656s-projects.vercel.app/api/trips") else {
+        guard let url = URL(string: "https://city-tailor-backend-k9s6rk7eu-alexmen656s-projects.vercel.app/api/trips") else {
             self.alertTitle = languageManager.localize("backend_notification")
             self.alertMessage = languageManager.localize("invalid_url")
             self.showAlert = true

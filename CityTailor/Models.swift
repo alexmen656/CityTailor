@@ -130,9 +130,10 @@ struct Activity: Codable, Identifiable {
     let mapAddress: String
     let displayAddress: String
     let category: String
+    let imageUrl: String?
     
     enum CodingKeys: String, CodingKey {
-        case time, title, description, mapAddress, displayAddress, category, location
+        case time, title, description, mapAddress, displayAddress, category, location, imageUrl
     }
     
     init(from decoder: Decoder) throws {
@@ -154,6 +155,7 @@ struct Activity: Codable, Identifiable {
         }
         
         category = try container.decode(String.self, forKey: .category)
+        imageUrl = try? container.decodeIfPresent(String.self, forKey: .imageUrl)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -164,11 +166,13 @@ struct Activity: Codable, Identifiable {
         try container.encode(mapAddress, forKey: .mapAddress)
         try container.encode(displayAddress, forKey: .displayAddress)
         try container.encode(category, forKey: .category)
+        try container.encodeIfPresent(imageUrl, forKey: .imageUrl)
     }
     
-    init(time: String, title: String, description: String, mapAddress: String, displayAddress: String, category: String) {
+    init(time: String, title: String, description: String, mapAddress: String, displayAddress: String, category: String, imageUrl: String? = nil) {
         self.time = time
         self.title = title
+        self.imageUrl = imageUrl
         self.description = description
         self.mapAddress = mapAddress
         self.displayAddress = displayAddress
