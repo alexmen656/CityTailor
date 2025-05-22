@@ -179,6 +179,13 @@ class LanguageManager: ObservableObject {
                 "transport_type_bicycle": "Fahrrad",
                 "transport_type_car": "Auto",
                 "transport_type_mix": "Gemischt",
+                "budget_level": "Budgetstufe",
+                "budget_level_low": "Günstig",
+                "budget_level_medium": "Mittelklasse",
+                "budget_level_high": "Gehoben",
+                "budget_level_luxury": "Luxus",
+                "budget_level_description": "Wählen Sie Ihre bevorzugte Budgetstufe",
+                "budget_level_premium_description": "Benutzerdefinierte Budgetstufen helfen bei der Suche nach Aktivitäten, die auf Ihre Ausgabepräferenzen zugeschnitten sind",
                 "enhanced_ai": "Verbesserte KI-Vorschläge",
                 "offline_access": "Offline-Zugriff",
                 "no_ads": "Keine Werbung",
@@ -258,6 +265,7 @@ class LanguageManager: ObservableObject {
                 // Premium Feature
                 "support_future_development": "Unterstütze zukünftige Entwicklung",
                 "premium_feature": "Premium-Funktion",
+                "premium_features": "Premium-Funktionen",
                 
                 // Navigation
                 "get_tickets": "Tickets kaufen",
@@ -353,6 +361,13 @@ class LanguageManager: ObservableObject {
                 "transport_type_bicycle": "Bicycle",
                 "transport_type_car": "Car",
                 "transport_type_mix": "Mixed",
+                "budget_level": "Budget Level",
+                "budget_level_low": "Budget",
+                "budget_level_medium": "Mid-range",
+                "budget_level_high": "High-end",
+                "budget_level_luxury": "Luxury",
+                "budget_level_description": "Select your preferred budget level",
+                "budget_level_premium_description": "Custom budget levels help find activities tailored to your spending preferences",
                 "enhanced_ai": "Enhanced AI Suggestions",
                 "offline_access": "Offline Access",
                 "no_ads": "No Advertisements",
@@ -432,6 +447,7 @@ class LanguageManager: ObservableObject {
                 // Premium Feature
                 "support_future_development": "Support Future Development",
                 "premium_feature": "Premium Feature",
+                "premium_features": "Premium Features",
                 
                 // Navigation
                 "get_tickets": "Get Tickets",
@@ -527,6 +543,13 @@ class LanguageManager: ObservableObject {
                 "transport_type_bicycle": "Vélo",
                 "transport_type_car": "Voiture",
                 "transport_type_mix": "Mixte",
+                "budget_level": "Niveau de budget",
+                "budget_level_low": "Économique",
+                "budget_level_medium": "Moyen",
+                "budget_level_high": "Haut de gamme",
+                "budget_level_luxury": "Luxe",
+                "budget_level_description": "Sélectionnez votre niveau de budget préféré",
+                "budget_level_premium_description": "Les niveaux de budget personnalisés aident à trouver des activités adaptées à vos préférences de dépenses",
                 "enhanced_ai": "Suggestions IA améliorées",
                 "offline_access": "Accès hors ligne",
                 "no_ads": "Sans publicités",
@@ -606,6 +629,7 @@ class LanguageManager: ObservableObject {
                 // Premium Feature
                 "support_future_development": "Soutenir le développement futur",
                 "premium_feature": "Fonctionnalité Premium",
+                "premium_features": "Fonctionnalités Premium",
                 
                 // Navigation
                 "get_tickets": "Obtenir des billets",
@@ -701,6 +725,13 @@ class LanguageManager: ObservableObject {
                 "transport_type_bicycle": "Bicicleta",
                 "transport_type_car": "Coche",
                 "transport_type_mix": "Mixto",
+                "budget_level": "Nivel de presupuesto",
+                "budget_level_low": "Económico",
+                "budget_level_medium": "Precio medio",
+                "budget_level_high": "Alta gama",
+                "budget_level_luxury": "Lujo",
+                "budget_level_description": "Seleccione su nivel de presupuesto preferido",
+                "budget_level_premium_description": "Los niveles de presupuesto personalizados ayudan a encontrar actividades adaptadas a sus preferencias de gasto",
                 "enhanced_ai": "Sugerencias mejoradas de IA",
                 "offline_access": "Acceso sin conexión",
                 "no_ads": "Sin publicidad",
@@ -780,6 +811,7 @@ class LanguageManager: ObservableObject {
                 // Premium Feature
                 "support_future_development": "Apoyo al desarrollo futuro",
                 "premium_feature": "Función Premium",
+                "premium_features": "Funciones Premium",
                 
                 // Navigation
                 "get_tickets": "Conseguir entradas",
@@ -875,6 +907,13 @@ class LanguageManager: ObservableObject {
                 "transport_type_bicycle": "Bicicletta",
                 "transport_type_car": "Auto",
                 "transport_type_mix": "Misto",
+                "budget_level": "Livello di budget",
+                "budget_level_low": "Economico",
+                "budget_level_medium": "Medio",
+                "budget_level_high": "Alto livello",
+                "budget_level_luxury": "Lusso",
+                "budget_level_description": "Seleziona il tuo livello di budget preferito",
+                "budget_level_premium_description": "I livelli di budget personalizzati aiutano a trovare attività adatte alle tue preferenze di spesa",
                 "enhanced_ai": "Suggerimenti AI migliorati",
                 "offline_access": "Accesso offline",
                 "no_ads": "Nessuna pubblicità",
@@ -954,6 +993,7 @@ class LanguageManager: ObservableObject {
                 // Premium Feature
                 "support_future_development": "Supporto allo sviluppo futuro",
                 "premium_feature": "Funzionalità Premium",
+                "premium_features": "Funzionalità Premium",
                 
                 // Navigation
                 "get_tickets": "Acquista biglietti",

@@ -2,6 +2,35 @@ import SwiftUI
 import CoreLocation
 import MapKit  
 
+enum BudgetLevel: String, CaseIterable, Codable {
+    case low = "budget_level_low"
+    case medium = "budget_level_medium"
+    case high = "budget_level_high"
+    case luxury = "budget_level_luxury"
+    
+    func localizedName(languageManager: LanguageManager) -> String {
+        return languageManager.localize(self.rawValue)
+    }
+    
+    /*var icon: String {
+        switch self {
+        case .low: return "banknote"
+        case .medium: return "creditcard"
+        case .high: return "dollarsign.circle"
+        case .luxury: return "dollarsign.circle.fill"
+        }
+    }*/
+    
+    var symbol: String {
+        switch self {
+        case .low: return "$"
+        case .medium: return "$$"
+        case .high: return "$$$"
+        case .luxury: return "$$$$"
+        }
+    }
+}
+
 enum TransportationType: String, CaseIterable, Codable {
     case walking = "transport_type_walking"
     case publicTransport = "transport_type_public"

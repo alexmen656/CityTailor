@@ -1,5 +1,53 @@
 import SwiftUI
 
+struct BudgetLevelSelector: View {
+    @EnvironmentObject private var languageManager: LanguageManager
+    @Binding var selectedBudgetLevel: BudgetLevel?
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(BudgetLevel.allCases, id: \.self) { budgetLevel in
+                    Button(action: {
+                        withAnimation {
+                            selectedBudgetLevel = budgetLevel
+                        }
+                    }) {
+                        VStack(spacing: 8) {
+                            ZStack {
+                                Circle()
+                                    .fill(selectedBudgetLevel == budgetLevel ? Color.blue : Color.blue.opacity(0.1))
+                                    .frame(width: 48, height: 48)
+                                
+                                Text(budgetLevel.symbol)
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(selectedBudgetLevel == budgetLevel ? .white : .blue)
+                            }
+                            .overlay(
+                                Circle()
+                                    .stroke(selectedBudgetLevel == budgetLevel ? Color.blue : Color.clear, lineWidth: 2)
+                                    .frame(width: 52, height: 52)
+                            )
+                            
+                            Text(budgetLevel.localizedName(languageManager: languageManager))
+                                .font(.caption)
+                                .fontWeight(selectedBudgetLevel == budgetLevel ? .semibold : .regular)
+                                .foregroundColor(selectedBudgetLevel == budgetLevel ? .primary : .secondary)
+                                .multilineTextAlignment(.center)
+                                .frame(width: 70, height: 32)
+                                .lineLimit(2)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(height: 90)
+                }
+            }
+            .padding(.horizontal, 4)
+            .padding(.vertical, 8)
+        }
+    }
+}
+
 struct TransportationTypeSelector: View {
     @EnvironmentObject private var languageManager: LanguageManager
     @Binding var selectedTransportationType: TransportationType?
@@ -155,6 +203,7 @@ struct DateSelectionView: View {
     @State private var selectedTravelType: TravelType? = .solo
     @State private var selectedTransportationType: TransportationType? = .walking
     @State private var selectedTravelMode: TravelMode? = .moderate
+    @State private var selectedBudgetLevel: BudgetLevel? = .medium
     @State private var showAdvancedSettings: Bool = false
     
     var tripLengthInDays: Int {
@@ -209,13 +258,34 @@ struct DateSelectionView: View {
                                     
                                     TravelModeSelector(selectedTravelMode: $selectedTravelMode)
                                         .padding(.bottom, 8)
+                                    
+                                    Text(languageManager.localize("budget_level"))
+                                        .font(.headline)
+                                        .padding(.top, 8)
+                                    
+                                    BudgetLevelSelector(selectedBudgetLevel: $selectedBudgetLevel)
+                                        .padding(.bottom, 8)
                                 } else {
                                     VStack(alignment: .leading, spacing: 12) {
                                         HStack {
                                             Image(systemName: "crown.fill")
                                                 .foregroundColor(.yellow)
                                                 .font(.system(size: 20))
-                                            Text(languageManager.localize("premium_feature"))
+                                            Text(languageManager.localize("premium_features"))
+                                                .font(.headline)
+                                                .foregroundColor(.primary)
+                                        }
+                                        
+                                       /* Text("1.")
+                                            .font(.headline)
+                                            .foregroundColor(.secondary)
+                                            .padding(.top, 8)*/
+                                            
+                                        HStack {
+                                            Image(systemName: "figure.walk")
+                                                .foregroundColor(.blue)
+                                                .font(.system(size: 16))
+                                            Text(languageManager.localize("travel_mode"))
                                                 .font(.headline)
                                                 .foregroundColor(.primary)
                                         }
@@ -224,6 +294,28 @@ struct DateSelectionView: View {
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                             .fixedSize(horizontal: false, vertical: true)
+                                        
+                                        Divider()
+                                            .padding(.vertical, 8)
+                                        
+                                       /* Text("2.")
+                                            .font(.headline)
+                                            .foregroundColor(.secondary)*/
+                                            
+                                        HStack {
+                                            Image(systemName: "dollarsign.circle")
+                                                .foregroundColor(.blue)
+                                                .font(.system(size: 16))
+                                            Text(languageManager.localize("budget_level"))
+                                                .font(.headline)
+                                                .foregroundColor(.primary)
+                                        }
+                                        
+                                        Text(languageManager.localize("budget_level_premium_description"))
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                            .padding(.top, 2)
                                         
                                         Button(action: {
                                             showPremiumView = true
@@ -411,6 +503,10 @@ struct DateSelectionView: View {
         
         if let travelMode = selectedTravelMode {
             tripData["travelMode"] = travelMode.rawValue
+        }
+        
+        if storeManager.isPremium(), let budgetLevel = selectedBudgetLevel {
+            tripData["budgetLevel"] = budgetLevel.rawValue
         }
         
         guard let url = URL(string: "https://city-tailor-backend-k9s6rk7eu-alexmen656s-projects.vercel.app/api/trips") else {
