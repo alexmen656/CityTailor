@@ -49,9 +49,14 @@ struct CustomTabBar: View {
                 selectedTab = 1
             }
             
-            TabBarButton(iconName: "gear", title: languageManager.localize("settings"), 
+            TabBarButton(iconName: "person.3.fill", title: languageManager.localize("community"), 
                          isSelected: selectedTab == 2, hasBackground: false) {
                 selectedTab = 2
+            }
+            
+            TabBarButton(iconName: "gear", title: languageManager.localize("settings"), 
+                         isSelected: selectedTab == 3, hasBackground: false) {
+                selectedTab = 3
             }
         }
         .padding(.horizontal, 10)

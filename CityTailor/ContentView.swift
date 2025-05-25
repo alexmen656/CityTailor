@@ -88,6 +88,9 @@ struct ContentView: View {
                 } else if tabSelection.selectedTab == 1 {
                     mainView
                 } else if tabSelection.selectedTab == 2 {
+                    MediaView()
+                        .padding(.bottom, 70)
+                } else if tabSelection.selectedTab == 3 {
                     SettingsView(isModal: false)
                         .padding(.bottom, 70)
                 }
