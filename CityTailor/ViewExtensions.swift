@@ -49,7 +49,7 @@ struct CustomTabBar: View {
                 selectedTab = 1
             }
             
-            TabBarButton(iconName: "person.3.fill", title: languageManager.localize("community"), 
+            TabBarButton(iconName: "square.split.2x2.fill", title: languageManager.localize("community"), 
                          isSelected: selectedTab == 2, hasBackground: false) {
                 selectedTab = 2
             }
