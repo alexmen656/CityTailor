@@ -298,7 +298,17 @@ class LanguageManager: ObservableObject {
                 "transit_future_update": "Diese Funktion wird in einem zukünftigen Update verfügbar sein.",
                 "route_calculation_error": "Fehler bei der Routenberechnung:",
                 "no_route_found": "Keine Route gefunden",
-                "multiple_activities_nearby": "Mehrere Aktivitäten in der Nähe"
+                "multiple_activities_nearby": "Mehrere Aktivitäten in der Nähe",
+                "discover": "Entdecken",
+                "featured": "Highlights",
+                "categories": "Kategorien",
+                "landmarks": "Sehenswürdigkeiten",
+                "food": "Essen & Trinken",
+                "activities": "Aktivitäten",
+                "events": "Veranstaltungen",
+                "trending": "Im Trend",
+                "local_tips": "Insider-Tipps",
+                "items": "Einträge"
             ]
         case .en:
             return [
@@ -498,7 +508,17 @@ class LanguageManager: ObservableObject {
                 "transit_future_update": "This feature will be available in a future update.",
                 "route_calculation_error": "Error calculating route:",
                 "no_route_found": "No route found",
-                "multiple_activities_nearby": "Multiple activities nearby"
+                "multiple_activities_nearby": "Multiple activities nearby",
+                "discover": "Discover",
+                "featured": "Featured",
+                "categories": "Categories",
+                "landmarks": "Landmarks",
+                "food": "Food & Drinks",
+                "activities": "Activities",
+                "events": "Events",
+                "trending": "Trending",
+                "local_tips": "Local Tips",
+                "items": "items"
             ]
         case .fr:
             return [
@@ -698,7 +718,17 @@ class LanguageManager: ObservableObject {
                 "transit_future_update": "Cette fonctionnalité sera disponible dans une mise à jour future.",
                 "route_calculation_error": "Erreur de calcul de l'itinéraire :",
                 "no_route_found": "Aucun itinéraire trouvé",
-                "multiple_activities_nearby": "Activités multiples à proximité"
+                "multiple_activities_nearby": "Activités multiples à proximité",
+                "discover": "Découvrir",
+                "featured": "À la une",
+                "categories": "Catégories",
+                "landmarks": "Monuments",
+                "food": "Gastronomie",
+                "activities": "Activités",
+                "events": "Événements",
+                "trending": "Tendances",
+                "local_tips": "Conseils locaux",
+                "items": "éléments"
             ]
         case .es:
             return [
@@ -898,7 +928,17 @@ class LanguageManager: ObservableObject {
                 "transit_future_update": "Esta función estará disponible en una actualización futura.",
                 "route_calculation_error": "Error al calcular la ruta:",
                 "no_route_found": "No se encontró ninguna ruta",
-                "multiple_activities_nearby": "Múltiples actividades cercanas"
+                "multiple_activities_nearby": "Múltiples actividades cercanas",
+                "discover": "Descubrir",
+                "featured": "Destacados",
+                "categories": "Categorías",
+                "landmarks": "Monumentos",
+                "food": "Gastronomía",
+                "activities": "Actividades",
+                "events": "Eventos",
+                "trending": "Tendencias",
+                "local_tips": "Consejos locales",
+                "items": "elementos"
             ]
         case .it:
             return [
@@ -1098,7 +1138,17 @@ class LanguageManager: ObservableObject {
                 "transit_future_update": "Questa funzione sarà disponibile in un futuro aggiornamento.",
                 "route_calculation_error": "Errore nel calcolo del percorso:",
                 "no_route_found": "Nessun percorso trovato",
-                "multiple_activities_nearby": "Molteplici attività nelle vicinanze"
+                "multiple_activities_nearby": "Molteplici attività nelle vicinanze",
+                "discover": "Scoprire",
+                "featured": "In evidenza",
+                "categories": "Categorie",
+                "landmarks": "Punti di riferimento",
+                "food": "Cibo",
+                "activities": "Attività",
+                "events": "Eventi",
+                "trending": "Tendenze",
+                "local_tips": "Consigli locali",
+                "items": "Elementi"
             ]
         }
     }

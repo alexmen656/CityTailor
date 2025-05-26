@@ -15,7 +15,7 @@ struct MediaView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                LazyVStack(spacing: 16) {
+                LazyVStack(spacing: 0) {
                     ForEach(viewModel.posts) { post in
                         PostCard(post: post)
                             .task {
@@ -25,8 +25,8 @@ struct MediaView: View {
                             }
                     }
                 }
-                .padding()
             }
+            .scrollIndicators(.hidden)
             .navigationTitle(viewModel.languageManager.localize("community_feed"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -126,16 +126,19 @@ struct PostCard: View {
                     switch phase {
                     case .empty:
                         ProgressView()
+                            .frame(width: UIScreen.main.bounds.width)
                             .frame(height: 300)
                     case .success(let image):
                         image
                             .resizable()
-                            .scaledToFill()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: UIScreen.main.bounds.width)
                             .frame(height: 300)
                             .clipped()
                     case .failure:
                         Rectangle()
                             .fill(Color.gray.opacity(0.3))
+                            .frame(width: UIScreen.main.bounds.width)
                             .frame(height: 300)
                             .overlay(
                                 Image(systemName: "exclamationmark.triangle")
@@ -226,9 +229,7 @@ struct PostCard: View {
         }
         .padding(.vertical, 8)
         .background(Color(UIColor.systemBackground))
-        .cornerRadius(10)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-        .padding(.horizontal)
+        .cornerRadius(0)
     }
     
     private func timeAgo(_ date: Date) -> String {

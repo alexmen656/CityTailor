@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 class TabSelection: ObservableObject {
-    @Published var selectedTab: Int = 1
+    @Published var selectedTab: Int = 2
 }
 
 extension View {
@@ -44,19 +44,24 @@ struct CustomTabBar: View {
                 selectedTab = 0
             }
             
-            TabBarButton(iconName: "map", title: languageManager.localize("map"), 
-                         isSelected: selectedTab == 1, hasBackground: true) {
+            TabBarButton(iconName: "sparkles", title: languageManager.localize("discover"), 
+                         isSelected: selectedTab == 1, hasBackground: false) {
                 selectedTab = 1
             }
             
-            TabBarButton(iconName: "square.split.2x2.fill", title: languageManager.localize("community"), 
-                         isSelected: selectedTab == 2, hasBackground: false) {
+            TabBarButton(iconName: "map", title: languageManager.localize("map"), 
+                         isSelected: selectedTab == 2, hasBackground: true) {
                 selectedTab = 2
+            }
+
+            TabBarButton(iconName: "square.split.2x2.fill", title: languageManager.localize("community"), 
+                         isSelected: selectedTab == 3, hasBackground: false) {
+                selectedTab = 3
             }
             
             TabBarButton(iconName: "gear", title: languageManager.localize("settings"), 
-                         isSelected: selectedTab == 3, hasBackground: false) {
-                selectedTab = 3
+                         isSelected: selectedTab == 4, hasBackground: false) {
+                selectedTab = 4
             }
         }
         .padding(.horizontal, 10)

@@ -86,11 +86,14 @@ struct ContentView: View {
                     PlansView()
                         .padding(.bottom, 70)
                 } else if tabSelection.selectedTab == 1 {
-                    mainView
+                    DiscoverView()
+                        .padding(.bottom, 70)
                 } else if tabSelection.selectedTab == 2 {
+                    mainView
+                } else if tabSelection.selectedTab == 3 {
                     MediaView()
                         .padding(.bottom, 70)
-                } else if tabSelection.selectedTab == 3 {
+                } else if tabSelection.selectedTab == 4 {
                     SettingsView(isModal: false)
                         .padding(.bottom, 70)
                 }
