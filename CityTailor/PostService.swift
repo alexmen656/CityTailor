@@ -5,6 +5,7 @@ class PostService {
     static let shared = PostService()
     private let baseURL = "https://alex.polan.sk/ct/backend/posts"
     private let imageBaseURL = "https://alex.polan.sk/ct/backend"
+    private let userManager = UserManager.shared
     
     private init() {}
     
@@ -13,7 +14,8 @@ class PostService {
             throw URLError(.badURL)
         }
         
-        let (data, response) = try await URLSession.shared.data(from: url)
+        let request = createRequestWithUserHeader(url: url)
+        let (data, response) = try await URLSession.shared.data(for: request)
         
         if let responseString = String(data: data, encoding: .utf8) {
             print("Response Data:", responseString)
@@ -33,16 +35,17 @@ class PostService {
             }
             
             return CommunityPost(
-                id: UUID(uuidString: response.id) ?? UUID(),
+                id: response.id,
                 username: response.username,
                 userAvatar: "person.crop.circle.fill",
                 location: response.location,
                 caption: response.caption,
                 images: [],
                 imageNames: response.imageUrls,
-                likes: 0,
+                likes: response.likes,
                 comments: 0,
-                timestamp: date
+                timestamp: date,
+                hasLiked: response.hasLiked
             )
         }
     }
@@ -66,8 +69,7 @@ class PostService {
             timestamp: Date()
         )
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        var request = createRequestWithUserHeader(url: url, method: "POST")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(post)
         
@@ -117,6 +119,46 @@ class PostService {
             timestamp: post.timestamp
         )
     }
+    
+    func likePost(postId: String) async throws -> (success: Bool, likes: Int) {
+        guard let url = URL(string: "\(baseURL)/likes.php") else {
+            throw URLError(.badURL)
+        }
+        
+        print("Like request URL:", url.absoluteString)
+        
+        let likeRequest = ["postId": postId]
+        
+        var request = createRequestWithUserHeader(url: url, method: "POST")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(likeRequest)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        if let responseString = String(data: data, encoding: .utf8) {
+            print("Like response:", responseString)
+        }
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+        
+        let decoder = JSONDecoder()
+        let likeResponse = try decoder.decode(LikeResponse.self, from: data)
+        return (success: likeResponse.success, likes: likeResponse.likes)
+    }
+    
+    private func createRequestWithUserHeader(url: URL, method: String = "GET") -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        
+        if let username = userManager.currentUsername {
+            request.setValue(username, forHTTPHeaderField: "X-User-Name")
+        }
+        
+        return request
+    }
 }
 
 struct PostResponse: Codable {
@@ -127,6 +169,8 @@ struct PostResponse: Codable {
     let imageUrls: [String]
     let timestamp: String
     let images: [String]?
+    let likes: Int
+    let hasLiked: Bool
 }
 
 struct PostRequest: Codable {
@@ -134,4 +178,10 @@ struct PostRequest: Codable {
     let caption: String
     let images: [String]
     let timestamp: Date
+}
+
+struct LikeResponse: Codable {
+    let success: Bool
+    let message: String
+    let likes: Int
 }

@@ -86,8 +86,16 @@ class MediaViewModel: ObservableObject {
 struct PostCard: View {
     let post: CommunityPost
     @State private var isLiked = false
+    @State private var likesCount: Int
+    @State private var isLikeInProgress = false
     @EnvironmentObject private var languageManager: LanguageManager
     
+    init(post: CommunityPost) {
+        self.post = post
+        _likesCount = State(initialValue: post.likes)
+        _isLiked = State(initialValue: post.hasLiked)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             
@@ -192,16 +200,18 @@ struct PostCard: View {
             
             HStack {
                 Button(action: {
-                    isLiked.toggle()
+                    guard !isLikeInProgress else { return }
+                    handleLike()
                 }) {
                     HStack {
                         Image(systemName: isLiked ? "heart.fill" : "heart")
                             .foregroundColor(isLiked ? .red : .gray)
                         
-                        Text("\(post.likes + (isLiked ? 1 : 0))")
+                        Text("\(likesCount)")
                             .foregroundColor(.gray)
                     }
                 }
+                .disabled(isLikeInProgress)
                 
                 Spacer()
                 
@@ -230,6 +240,29 @@ struct PostCard: View {
         .padding(.vertical, 8)
         .background(Color(UIColor.systemBackground))
         .cornerRadius(0)
+    }
+    
+    private func handleLike() {
+        isLikeInProgress = true
+        
+        Task {
+            do {
+                let result = try await PostService.shared.likePost(postId: post.id)
+                
+                DispatchQueue.main.async {
+                    if result.success {
+                        isLiked.toggle()
+                        likesCount = result.likes
+                    }
+                    isLikeInProgress = false
+                }
+            } catch {
+                print("Error liking post: \(error)")
+                DispatchQueue.main.async {
+                    isLikeInProgress = false
+                }
+            }
+        }
     }
     
     private func timeAgo(_ date: Date) -> String {
@@ -357,7 +390,7 @@ struct AddPostView: View {
                                 )
                                 
                                 let newPost = CommunityPost(
-                                    id: UUID(),
+                                    id: UUID().uuidString,
                                     username: "you",
                                     userAvatar: "person.crop.circle.fill",
                                     location: location,
@@ -399,7 +432,7 @@ struct AddPostView: View {
                             )
                             
                             let newPost = CommunityPost(
-                                id: UUID(),
+                                id: UUID().uuidString,
                                 username: "you",
                                 userAvatar: "person.crop.circle.fill",
                                 location: location,
@@ -424,7 +457,7 @@ struct AddPostView: View {
 }
 
 struct CommunityPost: Identifiable {
-    let id: UUID
+    let id: String
     let username: String
     let userAvatar: String
     let location: String
@@ -434,9 +467,10 @@ struct CommunityPost: Identifiable {
     let likes: Int
     let comments: Int
     let timestamp: Date
+    let hasLiked: Bool
     
-    init(id: UUID = UUID(), username: String, userAvatar: String, location: String, caption: String, 
-         images: [UIImage] = [], imageNames: [String] = [], likes: Int = 0, comments: Int = 0, timestamp: Date = Date()) {
+    init(id: String = UUID().uuidString, username: String, userAvatar: String, location: String, caption: String, 
+         images: [UIImage] = [], imageNames: [String] = [], likes: Int = 0, comments: Int = 0, timestamp: Date = Date(), hasLiked: Bool = false) {
         self.id = id
         self.username = username
         self.userAvatar = userAvatar
@@ -447,6 +481,7 @@ struct CommunityPost: Identifiable {
         self.likes = likes
         self.comments = comments
         self.timestamp = timestamp
+        self.hasLiked = hasLiked
     }
 }
 

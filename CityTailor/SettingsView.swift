@@ -118,7 +118,7 @@ class AppSettings: ObservableObject {
         language = "English"
         useLocation = true
         autoUpdates = true
-        dateFormat = 0 // System als Standard
+        dateFormat = 0
     }
 }
 
@@ -137,11 +137,13 @@ struct SettingsView: View {
     @EnvironmentObject private var storeManager: StoreManager
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var languageManager: LanguageManager
+    @StateObject private var userManager = UserManager.shared
     
     @State private var showInterestsView = false
     @State private var showPremiumView = false
     @State private var showAbout = false
-    
+    @State private var showLoginView = false
+
     var isModal: Bool = false
     
     var body: some View {
@@ -195,6 +197,33 @@ struct SettingsView: View {
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .foregroundColor(.gray)
+                        }
+                    }
+                }
+                
+                // Account
+                Section(header: Text("Account")) {
+                    if userManager.isLoggedIn {
+                        HStack {
+                            Label(userManager.currentUsername ?? "", systemImage: "person.circle.fill")
+                            Spacer()
+                        }
+                        Button(action: {
+                            userManager.logout()
+                        }) {
+                            Text("Logout")
+                                .foregroundColor(.red)
+                        }
+                    } else {
+                        Button(action: {
+                            showLoginView = true
+                        }) {
+                            HStack {
+                                Label("Login", systemImage: "person.circle.fill")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.gray)
+                            }
                         }
                     }
                 }
@@ -282,6 +311,9 @@ struct SettingsView: View {
             .sheet(isPresented: $showPremiumView) {
                 PremiumView()
                     .environmentObject(storeManager)
+            }
+            .sheet(isPresented: $showLoginView) {
+                LoginView()
             }
             .alert(isPresented: $showAbout) {
                 Alert(

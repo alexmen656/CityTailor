@@ -48,7 +48,7 @@ struct CustomTabBar: View {
                          isSelected: selectedTab == 1, hasBackground: false) {
                 selectedTab = 1
             }
-            
+
             TabBarButton(iconName: "map", title: languageManager.localize("map"), 
                          isSelected: selectedTab == 2, hasBackground: true) {
                 selectedTab = 2

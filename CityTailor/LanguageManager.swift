@@ -102,6 +102,25 @@ class LanguageManager: ObservableObject {
         switch language {
         case .de:
             return [
+                // Authentication
+                "username": "Benutzername",
+                "email": "E-Mail",
+                "password": "Passwort",
+                "confirm_password": "Passwort bestätigen",
+                "create_account": "Konto erstellen",
+                "password_requirements": "Das Passwort muss mindestens 8 Zeichen lang sein",
+                "error": "Fehler",
+                "validation_error": "Validierungsfehler",
+                "login": "Anmelden",
+                "login_failed": "Anmeldung fehlgeschlagen",
+                "forgot_password": "Passwort vergessen?",
+                "reset_password": "Passwort zurücksetzen",
+                "no_account": "Noch kein Konto?",
+                "has_account": "Bereits ein Konto?",
+                "sign_up": "Registrieren",
+                "sign_out": "Abmelden",
+                
+                // Main navigation
                 "advanced_settings": "Erweiterte Einstellungen",
                 "advanced_features": "Erweiterte Funktionen",
                 "map": "Karte",
@@ -312,6 +331,25 @@ class LanguageManager: ObservableObject {
             ]
         case .en:
             return [
+                // Authentication
+                "username": "Username",
+                "email": "Email",
+                "password": "Password",
+                "confirm_password": "Confirm Password",
+                "create_account": "Create Account",
+                "password_requirements": "Password must be at least 8 characters long",
+                "error": "Error",
+                "validation_error": "Validation Error",
+                "login": "Log In",
+                "login_failed": "Login Failed",
+                "forgot_password": "Forgot Password?",
+                "reset_password": "Reset Password",
+                "no_account": "Don't have an account?",
+                "has_account": "Already have an account?",
+                "sign_up": "Sign Up",
+                "sign_out": "Sign Out",
+                
+                // Main navigation
                 "advanced_settings": "Advanced Settings",
                 "advanced_features": "Advanced Features",
                 "map": "Map",
@@ -522,6 +560,25 @@ class LanguageManager: ObservableObject {
             ]
         case .fr:
             return [
+                // Authentication
+                "username": "Nom d'utilisateur",
+                "email": "E-mail",
+                "password": "Mot de passe",
+                "confirm_password": "Confirmer le mot de passe",
+                "create_account": "Créer un compte",
+                "password_requirements": "Le mot de passe doit contenir au moins 8 caractères",
+                "error": "Erreur",
+                "validation_error": "Erreur de validation",
+                "login": "Se connecter",
+                "login_failed": "Échec de la connexion",
+                "forgot_password": "Mot de passe oublié ?",
+                "reset_password": "Réinitialiser le mot de passe",
+                "no_account": "Vous n'avez pas de compte ?",
+                "has_account": "Vous avez déjà un compte ?",
+                "sign_up": "S'inscrire",
+                "sign_out": "Se déconnecter",
+                
+                // Main navigation
                 "advanced_settings": "Paramètres Avancés",
                 "advanced_features": "Fonctionnalités Avancées",
                 "map": "Carte",
@@ -732,6 +789,25 @@ class LanguageManager: ObservableObject {
             ]
         case .es:
             return [
+                // Authentication
+                "username": "Nombre de usuario",
+                "email": "Correo electrónico",
+                "password": "Contraseña",
+                "confirm_password": "Confirmar contraseña",
+                "create_account": "Crear cuenta",
+                "password_requirements": "La contraseña debe tener al menos 8 caracteres",
+                "error": "Error",
+                "validation_error": "Error de validación",
+                "login": "Iniciar sesión",
+                "login_failed": "Error de inicio de sesión",
+                "forgot_password": "¿Olvidaste tu contraseña?",
+                "reset_password": "Restablecer contraseña",
+                "no_account": "¿No tienes una cuenta?",
+                "has_account": "¿Ya tienes una cuenta?",
+                "sign_up": "Registrarse",
+                "sign_out": "Cerrar sesión",
+                
+                // Main navigation
                 "advanced_settings": "Configuraciones Avanzadas",
                 "advanced_features": "Funciones Avanzadas",
                 "map": "Mapa",
@@ -942,6 +1018,25 @@ class LanguageManager: ObservableObject {
             ]
         case .it:
             return [
+                // Authentication
+                "username": "Nome utente",
+                "email": "Email",
+                "password": "Password",
+                "confirm_password": "Conferma password",
+                "create_account": "Crea account",
+                "password_requirements": "La password deve contenere almeno 8 caratteri",
+                "error": "Errore",
+                "validation_error": "Errore di validazione",
+                "login": "Accedi",
+                "login_failed": "Accesso fallito",
+                "forgot_password": "Password dimenticata?",
+                "reset_password": "Reimposta password",
+                "no_account": "Non hai un account?",
+                "has_account": "Hai già un account?",
+                "sign_up": "Registrati",
+                "sign_out": "Disconnetti",
+                
+                // Main navigation
                 "advanced_settings": "Impostazioni Avanzate",
                 "advanced_features": "Funzioni Avanzate",
                 "map": "Mappa",
