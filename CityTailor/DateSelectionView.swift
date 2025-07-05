@@ -178,7 +178,7 @@ struct DateSelectionView: View {
     @EnvironmentObject private var languageManager: LanguageManager
     
     let locationName: String
-    var onTravelPlanReceived: ((TravelPlan) -> Void)? = nil
+    var onTravelPlanReceived: ((TravelPlan, String?) -> Void)? = nil
     
     @State private var startDate = Date()
     @State private var endDate = Date().addingTimeInterval(3 * 24 * 60 * 60)
@@ -640,7 +640,7 @@ struct DateSelectionView: View {
         self.isLoading = false
         
         if let onTravelPlanReceived = self.onTravelPlanReceived {
-            onTravelPlanReceived(backendResponse.data)
+            onTravelPlanReceived(backendResponse.data, backendResponse.planId)
         }
         
         self.presentationMode.wrappedValue.dismiss()

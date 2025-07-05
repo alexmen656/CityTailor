@@ -293,6 +293,22 @@ class LanguageManager: ObservableObject {
                 "check_out_my_trip_to": "Schau mal, mein Trip nach",
                 "created_with_citytailor": "erstellt mit der CityTailor App!",
                 
+                // Collaboration Features
+                "share_plan": "Plan teilen",
+                "share_with_code": "Mit Code teilen",
+                "access_with_code": "Mit Code zugreifen",
+                "generate_share_code": "Teilungs-Code generieren",
+                "remove_share_code": "Teilungs-Code entfernen",
+                "enter_access_code": "Zugangs-Code eingeben",
+                "access_code": "Zugangs-Code",
+                "share_code_generated": "Teilungs-Code erstellt",
+                "share_code_removed": "Teilungs-Code entfernt",
+                "plan_accessed": "Plan geladen",
+                "invalid_access_code": "Ungültiger Zugangs-Code",
+                "copy_code": "Code kopieren",
+                "code_copied": "Code kopiert",
+                "enter_6_digit_code": "6-stelligen Code eingeben",
+                
                 // Onboarding
                 "welcome_to_citytailor": "Willkommen bei CityTailor",
                 "personalize_travel_plans": "Personalisieren Sie Ihre Reisepläne, indem Sie uns mitteilen, woran Sie interessiert sind",
@@ -521,6 +537,22 @@ class LanguageManager: ObservableObject {
                 "share": "Share",
                 "check_out_my_trip_to": "Check out my trip to",
                 "created_with_citytailor": "created with the CityTailor app!",
+                
+                // Collaboration Features
+                "share_plan": "Share Plan",
+                "share_with_code": "Share with Code",
+                "access_with_code": "Access with Code",
+                "generate_share_code": "Generate Share Code",
+                "remove_share_code": "Remove Share Code",
+                "enter_access_code": "Enter Access Code",
+                "access_code": "Access Code",
+                "share_code_generated": "Share Code Generated",
+                "share_code_removed": "Share Code Removed",
+                "plan_accessed": "Plan Loaded",
+                "invalid_access_code": "Invalid Access Code",
+                "copy_code": "Copy Code",
+                "code_copied": "Code Copied",
+                "enter_6_digit_code": "Enter 6-digit code",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Welcome to CityTailor",
@@ -751,6 +783,22 @@ class LanguageManager: ObservableObject {
                 "check_out_my_trip_to": "Découvrez mon voyage à",
                 "created_with_citytailor": "créé avec l'application CityTailor!",
                 
+                // Collaboration Features
+                "share_plan": "Partager le Plan",
+                "share_with_code": "Partager avec Code",
+                "access_with_code": "Accéder avec Code",
+                "generate_share_code": "Générer Code de Partage",
+                "remove_share_code": "Supprimer Code de Partage",
+                "enter_access_code": "Entrer Code d'Accès",
+                "access_code": "Code d'Accès",
+                "share_code_generated": "Code de Partage Généré",
+                "share_code_removed": "Code de Partage Supprimé",
+                "plan_accessed": "Plan Chargé",
+                "invalid_access_code": "Code d'Accès Invalide",
+                "copy_code": "Copier le Code",
+                "code_copied": "Code Copié",
+                "enter_6_digit_code": "Entrer code à 6 chiffres",
+                
                 // Onboarding
                 "welcome_to_citytailor": "Bienvenue sur CityTailor",
                 "personalize_travel_plans": "Personnalisez vos plans de voyage en nous indiquant ce qui vous intéresse",
@@ -980,6 +1028,22 @@ class LanguageManager: ObservableObject {
                 "check_out_my_trip_to": "Mira mi viaje a",
                 "created_with_citytailor": "creado con la aplicación CityTailor!",
                 
+                // Collaboration Features
+                "share_plan": "Compartir Plan",
+                "share_with_code": "Compartir con Código",
+                "access_with_code": "Acceder con Código",
+                "generate_share_code": "Generar Código de Compartir",
+                "remove_share_code": "Eliminar Código de Compartir",
+                "enter_access_code": "Ingresar Código de Acceso",
+                "access_code": "Código de Acceso",
+                "share_code_generated": "Código de Compartir Generado",
+                "share_code_removed": "Código de Compartir Eliminado",
+                "plan_accessed": "Plan Cargado",
+                "invalid_access_code": "Código de Acceso Inválido",
+                "copy_code": "Copiar Código",
+                "code_copied": "Código Copiado",
+                "enter_6_digit_code": "Ingresar código de 6 dígitos",
+                
                 // Onboarding
                 "welcome_to_citytailor": "Bienvenido a CityTailor",
                 "personalize_travel_plans": "Personalice sus planes de viaje diciéndonos qué le interesa",
@@ -1208,6 +1272,22 @@ class LanguageManager: ObservableObject {
                 "share": "Condividi",
                 "check_out_my_trip_to": "Guarda il mio viaggio a",
                 "created_with_citytailor": "creato con l'app CityTailor!",
+                
+                // Collaboration Features
+                "share_plan": "Condividi Piano",
+                "share_with_code": "Condividi con Codice",
+                "access_with_code": "Accedi con Codice",
+                "generate_share_code": "Genera Codice di Condivisione",
+                "remove_share_code": "Rimuovi Codice di Condivisione",
+                "enter_access_code": "Inserisci Codice di Accesso",
+                "access_code": "Codice di Accesso",
+                "share_code_generated": "Codice di Condivisione Generato",
+                "share_code_removed": "Codice di Condivisione Rimosso",
+                "plan_accessed": "Piano Caricato",
+                "invalid_access_code": "Codice di Accesso Non Valido",
+                "copy_code": "Copia Codice",
+                "code_copied": "Codice Copiato",
+                "enter_6_digit_code": "Inserisci codice a 6 cifre",
                 
                 // Onboarding
                 "welcome_to_citytailor": "Benvenuto su CityTailor",

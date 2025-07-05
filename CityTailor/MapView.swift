@@ -15,6 +15,9 @@ struct MapView: UIViewRepresentable {
         
         mapView.showsUserLocation = true
         
+        // Set initial region
+        mapView.setRegion(region, animated: false)
+        
         mapView.register(
             MKMarkerAnnotationView.self,
             forAnnotationViewWithReuseIdentifier:MKMapViewDefaultAnnotationViewReuseIdentifier
@@ -29,7 +32,15 @@ struct MapView: UIViewRepresentable {
     }
     
     func updateUIView(_ view: MKMapView, context: Context) {
-        view.setRegion(region, animated: true)
+        let currentRegion = view.region
+        let regionChanged = abs(currentRegion.center.latitude - region.center.latitude) > 0.001 ||
+                           abs(currentRegion.center.longitude - region.center.longitude) > 0.001 ||
+                           abs(currentRegion.span.latitudeDelta - region.span.latitudeDelta) > 0.01 ||
+                           abs(currentRegion.span.longitudeDelta - region.span.longitudeDelta) > 0.01
+        
+        if regionChanged {
+            view.setRegion(region, animated: true)
+        }
         
         view.showsUserLocation = true
         
@@ -194,6 +205,7 @@ struct MapView: UIViewRepresentable {
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: MapView
         var languageManager: LanguageManager
+        private var isUserInteracting = false
         
         init(_ parent: MapView, languageManager: LanguageManager) {
             self.parent = parent
@@ -201,8 +213,18 @@ struct MapView: UIViewRepresentable {
             super.init()
         }
         
+        func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
+            // Check if this is a user-initiated change
+            isUserInteracting = animated
+        }
+        
         func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
-            parent.region = mapView.region
+            // Only update the parent's region if the user is actively interacting
+            if isUserInteracting {
+                DispatchQueue.main.async {
+                    self.parent.region = mapView.region
+                }
+            }
         }
         
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {

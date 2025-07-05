@@ -97,6 +97,7 @@ struct BackendResponse: Codable {
     let success: Bool
     let message: String
     let data: TravelPlan
+    let planId: String?
 }
 
 struct TravelPlan: Codable, Identifiable {

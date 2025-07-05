@@ -235,11 +235,11 @@ struct ContentView: View {
             } else {
                 DateSelectionView(
                     locationName: selectedLocation,
-                    onTravelPlanReceived: { plan in
+                    onTravelPlanReceived: { plan, planId in
                         self.travelPlan = plan
                         
                         if TravelPlanStore.shared.canSaveTravelPlan(isPremium: storeManager.isPremium(), context: viewContext) {
-                            TravelPlanStore.shared.saveTravelPlan(plan, context: viewContext)
+                            TravelPlanStore.shared.saveTravelPlan(plan, context: viewContext, backendPlanId: planId)
                             self.showSaveFeedback = true
                         }
                     }

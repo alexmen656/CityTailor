@@ -8,7 +8,7 @@ class TravelPlanStore {
     static let shared = TravelPlanStore()
     static let FREE_PLAN_LIMIT = 3
     
-    func saveTravelPlan(_ travelPlan: TravelPlan, context: NSManagedObjectContext) {
+    func saveTravelPlan(_ travelPlan: TravelPlan, context: NSManagedObjectContext, backendPlanId: String? = nil) {
         
         let savedPlan = SavedTravelPlan(context: context)
         savedPlan.id = UUID().uuidString
@@ -17,6 +17,10 @@ class TravelPlanStore {
         savedPlan.endDate = travelPlan.period.endDate
         savedPlan.creationDate = Date()
         
+        // Store the backend plan ID if provided
+        if let backendPlanId = backendPlanId {
+            savedPlan.backendPlanId = backendPlanId
+        }
         
         if let encodedData = try? JSONEncoder().encode(travelPlan) {
             savedPlan.planData = encodedData
@@ -25,7 +29,9 @@ class TravelPlanStore {
         do {
             try context.save()
             print("Travel plan saved successfully: \(travelPlan.location)")
-            
+            if let backendPlanId = backendPlanId {
+                print("Backend plan ID saved: \(backendPlanId)")
+            }
             
             updateWidgetData(context: context)
         } catch {
@@ -53,6 +59,9 @@ class TravelPlanStore {
                     let plan = try JSONDecoder().decode(TravelPlan.self, from: planData)
                     print("DEBUG: Successfully decoded travel plan for \(location)")
                     print("DEBUG: Plan has \(plan.dailyPlans?.count ?? 0) daily plans")
+                    
+                    let backendPlanId = savedPlan.backendPlanId
+                    
                     return SavedTravelPlanViewModel(
                         id: id,
                         location: location,
@@ -61,7 +70,8 @@ class TravelPlanStore {
                         creationDate: savedPlan.creationDate ?? Date(),
                         plan: plan,
                         image: nil,
-                        imageInfo: plan.image
+                        imageInfo: plan.image,
+                        backendPlanId: backendPlanId
                     )
                 } catch {
                     print("DEBUG: Failed to decode travel plan: \(error.localizedDescription)")
@@ -259,4 +269,5 @@ struct SavedTravelPlanViewModel: Identifiable {
     let plan: TravelPlan
     var image: UIImage?
     var imageInfo: ImageInfo?
+    let backendPlanId: String?
 }

@@ -15,6 +15,8 @@ struct PlansView: View {
     @State private var savedPlans: [SavedTravelPlanViewModel] = []
     @State private var showPremiumView = false
     @State private var remainingFreePlans = 0
+    @State private var showAccessCodeView = false
+    @State private var selectedPlanForSharing: SavedTravelPlanViewModel?
     
     var body: some View {
         NavigationView {
@@ -141,6 +143,20 @@ struct PlansView: View {
                                         
                                         Spacer()
                                         
+                                        if plan.backendPlanId != nil {
+                                            Button(action: {
+                                                selectedPlanForSharing = plan
+                                            }) {
+                                                Image(systemName: "square.and.arrow.up")
+                                                    .font(.caption)
+                                                    .foregroundColor(.blue)
+                                                    .padding(4)
+                                                    .background(Color.blue.opacity(0.1))
+                                                    .cornerRadius(4)
+                                            }
+                                            .buttonStyle(PlainButtonStyle())
+                                        }
+                                        
                                         Text(DateFormatterUtils.formatDate(plan.creationDate))
                                             .font(.caption)
                                             .foregroundColor(.secondary)
@@ -168,11 +184,28 @@ struct PlansView: View {
                 }
             }
             .navigationTitle(languageManager.localize("my_travel_plans"))
+            .navigationBarItems(
+                trailing: HStack(spacing: 16) {
+                    Button(action: {
+                        showAccessCodeView = true
+                    }) {
+                        Image(systemName: "qrcode.viewfinder")
+                            .font(.title3)
+                    }
+                    .accessibilityLabel(languageManager.localize("enter_access_code"))
+                }
+            )
             .onAppear {
                 loadSavedPlans()
             }
             .sheet(isPresented: $showPremiumView) {
                 PremiumView()
+            }
+            .sheet(isPresented: $showAccessCodeView) {
+                AccessCodeView()
+            }
+            .sheet(item: $selectedPlanForSharing) { plan in
+                ShareCodeManagementView(plan: plan)
             }
         }
     }
