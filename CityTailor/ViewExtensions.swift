@@ -39,30 +39,35 @@ struct CustomTabBar: View {
     
     var body: some View {
         HStack {
-            TabBarButton(iconName: "doc.text.fill", title: languageManager.localize("plans"), 
+            TabBarButton(iconName: "doc.text.fill", title: languageManager.localize("plans"),
                          isSelected: selectedTab == 0, hasBackground: false) {
                 selectedTab = 0
             }
-            
-            TabBarButton(iconName: "sparkles", title: languageManager.localize("discover"), 
+            .accessibilityIdentifier("tab_plans")
+
+            TabBarButton(iconName: "sparkles", title: languageManager.localize("discover"),
                          isSelected: selectedTab == 1, hasBackground: false) {
                 selectedTab = 1
             }
+            .accessibilityIdentifier("tab_discover")
 
-            TabBarButton(iconName: "map", title: languageManager.localize("map"), 
+            TabBarButton(iconName: "map", title: languageManager.localize("map"),
                          isSelected: selectedTab == 2, hasBackground: true) {
                 selectedTab = 2
             }
+            .accessibilityIdentifier("tab_map")
 
-            TabBarButton(iconName: "square.split.2x2.fill", title: languageManager.localize("community"), 
+            TabBarButton(iconName: "square.split.2x2.fill", title: languageManager.localize("community"),
                          isSelected: selectedTab == 3, hasBackground: false) {
                 selectedTab = 3
             }
-            
-            TabBarButton(iconName: "gear", title: languageManager.localize("settings"), 
+            .accessibilityIdentifier("tab_community")
+
+            TabBarButton(iconName: "gear", title: languageManager.localize("settings"),
                          isSelected: selectedTab == 4, hasBackground: false) {
                 selectedTab = 4
             }
+            .accessibilityIdentifier("tab_settings")
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)

@@ -9,35 +9,105 @@ import XCTest
 
 final class CityTailorUITests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    var app: XCUIApplication!
 
-        // In UI tests it is usually best to stop immediately when a failure occurs.
+    override func setUpWithError() throws {
         continueAfterFailure = false
 
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+        app = XCUIApplication()
+        setupSnapshot(app)
+
+        // Skip onboarding so we land directly in the main app
+        app.launchArguments += ["-hasLaunchedBefore", "1"]
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        app = nil
     }
 
+    // MARK: - Screenshot: Map (Home)
+
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
+    func testScreenshot01_Map() throws {
         app.launch()
+        // Map tab is the default (tab index 2)
+        sleep(2)
+        snapshot("01_Map")
+    }
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    // MARK: - Screenshot: Plans
+
+    @MainActor
+    func testScreenshot02_Plans() throws {
+        app.launch()
+        sleep(1)
+
+        app.buttons["tab_plans"].tap()
+        sleep(1)
+        snapshot("02_Plans")
+    }
+
+    // MARK: - Screenshot: Discover
+
+    @MainActor
+    func testScreenshot03_Discover() throws {
+        app.launch()
+        sleep(1)
+
+        app.buttons["tab_discover"].tap()
+        sleep(1)
+        snapshot("03_Discover")
+    }
+
+    // MARK: - Screenshot: Community
+
+    @MainActor
+    func testScreenshot04_Community() throws {
+        app.launch()
+        sleep(1)
+
+        app.buttons["tab_community"].tap()
+        sleep(1)
+        snapshot("04_Community")
+    }
+
+    // MARK: - Screenshot: Settings
+
+    @MainActor
+    func testScreenshot05_Settings() throws {
+        app.launch()
+        sleep(1)
+
+        app.buttons["tab_settings"].tap()
+        sleep(1)
+        snapshot("05_Settings")
+    }
+}
+
+// MARK: - Onboarding Screenshots (separate test class, no hasLaunchedBefore flag)
+
+final class CityTailorOnboardingUITests: XCTestCase {
+
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+
+        app = XCUIApplication()
+        setupSnapshot(app)
+
+        // Reset onboarding state so we see the welcome screen
+        app.launchArguments += ["-hasLaunchedBefore", "0"]
+    }
+
+    override func tearDownWithError() throws {
+        app = nil
     }
 
     @MainActor
-    func testLaunchPerformance() throws {
-        if #available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 7.0, *) {
-            // This measures how long it takes to launch your application.
-            measure(metrics: [XCTApplicationLaunchMetric()]) {
-                XCUIApplication().launch()
-            }
-        }
+    func testScreenshot00_Onboarding() throws {
+        app.launch()
+        sleep(1)
+        snapshot("00_Onboarding")
     }
 }
