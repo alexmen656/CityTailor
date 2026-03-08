@@ -1,4 +1,9 @@
 {
+   "_config": {
+    "bgColor1": "#1a1a2e",
+    "bgColor2": "#16213e",
+    "textColor": "#ffffff"
+  },
   "04_Community": "Community tab with posts and social interactions",
   "05_Settings": "a settings screen with config"
 }
