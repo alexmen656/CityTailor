@@ -4,6 +4,8 @@
     "bgColor2": "#16213e",
     "textColor": "#ffffff"
   },
+   "01_Map": "Main map view showing attractions in the city",
+   "02_Plans": "View showing all saved city plans, accessible offline",
   "04_Community": "Community tab with posts and social interactions",
   "05_Settings": "a settings screen with config"
 }
