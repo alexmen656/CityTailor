@@ -71,4 +71,4 @@ MIT License — free for personal and commercial use.
 ---
 
 Made with ❤️ for the Hack Club community.
-ef r3gn t
+ef r3gn
